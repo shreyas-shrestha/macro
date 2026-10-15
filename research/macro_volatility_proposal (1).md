@@ -1,5 +1,4 @@
 # Forecasting typical and high-end volatility from interest-rate conditions
-**Santoshi Yadagiri | Trading @ GT**
 
 ## Signal
 
