@@ -1,10 +1,10 @@
 # Macro Team, Trading Club @ GT
 
-Research repository of the Macro Team at the Trading Club at Georgia Tech.
+The Macro Team is the group within the Trading Club at Georgia Tech focused on global macro: interest rates, credit, currencies, sovereign risk, monetary policy and the way conditions in those markets move equities and other assets. The team covers macro developments, builds systematic signals from macro data, and tests whether they hold up under the standards used in professional quantitative research. This repository holds the team's code, data definitions, research write-ups and results.
 
-## About the team
+## How the team works
 
-The Macro Team studies how macroeconomic conditions, monetary policy and cross-asset stress transmit into asset prices, and whether that transmission can be measured and forecast with the discipline expected of professional quantitative research. Work is organized as research programs. Each program states a hypothesis, fixes an evaluation protocol before results are produced, and ends in a reproducible set of results and a written report. Members own individual signals or infrastructure components within a program, and all code, data definitions and results live in this repository.
+Work is organized as research programs. Each program states a hypothesis, fixes an evaluation protocol before any results are produced, and ends in a reproducible set of results and a written report. Members own individual signals or infrastructure components within a program. Proposals and write-ups are kept in `research/`, and every result in a report can be regenerated from code and configuration in this repository.
 
 ## Current program: macro signals for equity volatility (Fall 2026)
 
