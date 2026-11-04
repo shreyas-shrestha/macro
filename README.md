@@ -1,45 +1,38 @@
-# Macro Volatility Research
+# Macro Volatility Project
 
-Trading Club @ GT, Macro team. Fall 2026.
+Trading Club @ GT, Macro team, Fall 2026.
 
-## What we're trying to find out
+## The goal
 
-Everyone knows volatility clusters. If the market was wild last month it will probably be wild next month, and VIX already tells you what options traders expect. Our question is whether the macro picture adds anything on top of that.
+We want to predict how volatile the S&P 500 will be over the next month or so, using macro data.
 
-Specifically: do credit spreads, the yield curve, Treasury volatility, funding stress, slow-moving economic data and emerging-market spreads tell you something about S&P 500 volatility over the next one to three months that VIX and a GARCH model don't already know?
+Predicting volatility is not new. If the market has been jumpy recently, it will probably stay jumpy, and VIX already tells you what the options market expects. So the real question is:
 
-The intuition is that stress often shows up in credit and rates markets before it fully shows up in equity options. If that's true, it should be measurable. If it isn't, we want to be able to say so with evidence.
+**Does macro data (credit spreads, interest rates, funding markets, jobless claims, etc.) tell us anything about future volatility that VIX and standard models don't already know?**
 
-## What the end result looks like
+Our bet is that stress tends to show up in bond and credit markets before it shows up in stocks. If that's true, we should be able to measure it. If it's not true, we want to be able to show that too.
 
-By the end of the semester we want three things:
+## What we're building
 
-1. **A scorecard.** Every signal tested the same way, on the same data, against the same baselines, with a clear yes or no on whether it added information. We expect some to fail. A clean negative result is still a result.
-2. **A combined forecast.** The signals that survive are combined into one volatility forecast, and we show whether that beats the best single signal and the standard benchmarks.
-3. **A strategy.** That forecast drives how much S&P 500 exposure to hold, scaled down when predicted volatility is high. We show whether the better forecast actually produces a better risk-adjusted return after costs, compared with doing the same thing off VIX or GARCH alone.
+1. **Signals.** Each person owns one macro signal and tests whether it helps predict volatility. Everyone's signal gets tested the exact same way so the results are comparable.
+2. **A combined forecast.** We take the signals that actually work and combine them into one forecast.
+3. **A strategy.** We use that forecast to decide how much S&P 500 to hold: less when we expect high volatility, more when we expect calm. Then we check whether it beats doing the same thing with just VIX or a standard model.
 
-All of this is tested once, at the end, on data from 2018 onward that nobody touches during development. That's the number we'd show someone who works at a real shop.
-
-## How it fits together
-
-- **One target.** Realized S&P 500 variance over the next 5, 21 and 63 trading days.
-- **One set of baselines.** Trailing realized vol, HAR-RV, GARCH(1,1), VIX. Every signal has to beat these.
-- **One signal per person.** Each is a small module that produces daily features using only information that was actually available on that day.
-- **One evaluation.** Walk-forward, out of sample, same metrics for everyone. Development on 2000–2017, holdout 2018 to present.
+Everything gets built and tested on data from 2000 to 2017. At the end of the semester we run it once on 2018 to today, which nobody is allowed to look at before then. That final result is what we show people.
 
 ## The signals
 
-| Signal | What it measures | Data |
-|---|---|---|
-| [Credit spreads](https://github.com/shreyas-shrestha/macro/issues/11) | How much extra yield risky companies pay | BAA10Y, FRED |
-| [Rates and yield curve](https://github.com/shreyas-shrestha/macro/issues/12) | Level, slope and instability of Treasury yields | DGS10, T10Y2Y, T10Y3M, FRED |
-| [Rates volatility](https://github.com/shreyas-shrestha/macro/issues/13) | Implied volatility in the Treasury market | MOVE |
-| [Slow macro](https://github.com/shreyas-shrestha/macro/issues/14) | Financial conditions and jobless claims | NFCI, ICSA, FRED |
-| [Funding and liquidity](https://github.com/shreyas-shrestha/macro/issues/15) | Cost of short-term borrowing vs the Fed rate | CPFF, FRED |
-| [VIX term structure](https://github.com/shreyas-shrestha/macro/issues/16) | Near-term vs three-month implied vol | VIX, VIX3M, CBOE |
-| [EM sovereign spreads](https://github.com/shreyas-shrestha/macro/issues/17) | Emerging-market sovereign risk | EMBIG, BCRP |
+| Signal | What it is |
+|---|---|
+| [Credit spreads](https://github.com/shreyas-shrestha/macro/issues/11) | How much more companies pay to borrow than the government |
+| [Rates and yield curve](https://github.com/shreyas-shrestha/macro/issues/12) | Where Treasury yields are and how the curve is shaped |
+| [Rates volatility](https://github.com/shreyas-shrestha/macro/issues/13) | How jumpy the Treasury market is (MOVE index) |
+| [Slow macro](https://github.com/shreyas-shrestha/macro/issues/14) | Financial conditions index and jobless claims |
+| [Funding and liquidity](https://github.com/shreyas-shrestha/macro/issues/15) | How expensive short-term borrowing is for banks and companies |
+| [VIX term structure](https://github.com/shreyas-shrestha/macro/issues/16) | 1-month VIX vs 3-month VIX |
+| [EM sovereign spreads](https://github.com/shreyas-shrestha/macro/issues/17) | Risk on emerging-market government bonds |
 
-The supporting work (data layer, target and baselines, backtest harness, combination, strategy and the final holdout run) is tracked in the [issues](https://github.com/shreyas-shrestha/macro/issues).
+The rest of the work (data pipeline, baselines, backtesting, combining, strategy) is on the [issues page](https://github.com/shreyas-shrestha/macro/issues).
 
 ## Getting started
 
@@ -47,7 +40,7 @@ The supporting work (data layer, target and baselines, backtest harness, combina
 git clone https://github.com/shreyas-shrestha/macro.git
 cd macro
 cp .env.example .env          # add a free FRED API key from fred.stlouisfed.org
-python data/data_check.py     # confirms the data pulls work
+python data/data_check.py     # checks the data pulls work
 ```
 
-Project setup and conventions are in `CONTRIBUTING.md` once the package scaffold lands. Research proposals and write-ups live in `research/`.
+Setup details and how to contribute will be in `CONTRIBUTING.md` once the code scaffold is in. Research write-ups are in `research/`.
