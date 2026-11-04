@@ -1,38 +1,28 @@
-# Macro Volatility Project
+# Macro volatility project
 
-Trading Club @ GT, Macro team, Fall 2026.
+Trading Club at GT, macro team, fall 2026.
 
-## The goal
+We are trying to predict how volatile the S&P 500 is going to be over the next month or so, using macro data instead of just the stock market itself.
 
-We want to predict how volatile the S&P 500 will be over the next month or so, using macro data.
+Volatility is already fairly predictable. When the market has been jumpy it usually stays jumpy for a while, and the VIX tells you what options traders expect. Anything we build has to do better than that or there is no point. The idea we are testing is that trouble tends to show up in credit and bond markets a bit before it shows up in stocks. Credit spreads widen, the yield curve inverts, it gets more expensive for banks to borrow, and a few weeks later the stock market gets rough. Whether that lead really exists in the data, and whether it is big enough to matter once you already have the VIX, is what the semester is about.
 
-Predicting volatility is not new. If the market has been jumpy recently, it will probably stay jumpy, and VIX already tells you what the options market expects. So the real question is:
+Each person on the team owns one signal. You take a piece of macro data, turn it into a daily series, and test whether adding it to a standard volatility model makes the forecasts better. Everyone runs the same test on the same dates so we can line the results up at the end. Some of the signals will not work. We will write those up too.
 
-**Does macro data (credit spreads, interest rates, funding markets, jobless claims, etc.) tell us anything about future volatility that VIX and standard models don't already know?**
+Once we know which signals help, we combine them into one forecast and use it to decide how much S&P 500 to hold. Less when we expect a rough month, more when we expect a quiet one. Then we check whether that did better than making the same decision off the VIX alone.
 
-Our bet is that stress tends to show up in bond and credit markets before it shows up in stocks. If that's true, we should be able to measure it. If it's not true, we want to be able to show that too.
-
-## What we're building
-
-1. **Signals.** Each person owns one macro signal and tests whether it helps predict volatility. Everyone's signal gets tested the exact same way so the results are comparable.
-2. **A combined forecast.** We take the signals that actually work and combine them into one forecast.
-3. **A strategy.** We use that forecast to decide how much S&P 500 to hold: less when we expect high volatility, more when we expect calm. Then we check whether it beats doing the same thing with just VIX or a standard model.
-
-Everything gets built and tested on data from 2000 to 2017. At the end of the semester we run it once on 2018 to today, which nobody is allowed to look at before then. That final result is what we show people.
+There is one rule we are strict about. All of the development happens on data from 2000 through 2017. Data from 2018 onward is off limits until the end of the semester, when we run everything on it once. That final run is the result.
 
 ## The signals
 
-| Signal | What it is |
-|---|---|
-| [Credit spreads](https://github.com/shreyas-shrestha/macro/issues/11) | How much more companies pay to borrow than the government |
-| [Rates and yield curve](https://github.com/shreyas-shrestha/macro/issues/12) | Where Treasury yields are and how the curve is shaped |
-| [Rates volatility](https://github.com/shreyas-shrestha/macro/issues/13) | How jumpy the Treasury market is (MOVE index) |
-| [Slow macro](https://github.com/shreyas-shrestha/macro/issues/14) | Financial conditions index and jobless claims |
-| [Funding and liquidity](https://github.com/shreyas-shrestha/macro/issues/15) | How expensive short-term borrowing is for banks and companies |
-| [VIX term structure](https://github.com/shreyas-shrestha/macro/issues/16) | 1-month VIX vs 3-month VIX |
-| [EM sovereign spreads](https://github.com/shreyas-shrestha/macro/issues/17) | Risk on emerging-market government bonds |
+- Credit spreads ([#11](https://github.com/shreyas-shrestha/macro/issues/11)). The gap between what companies pay to borrow and what the government pays.
+- Rates and the yield curve ([#12](https://github.com/shreyas-shrestha/macro/issues/12)). The level of Treasury yields and the shape of the curve.
+- Treasury volatility ([#13](https://github.com/shreyas-shrestha/macro/issues/13)). The MOVE index, roughly the VIX for bonds.
+- Slow macro ([#14](https://github.com/shreyas-shrestha/macro/issues/14)). The Chicago Fed financial conditions index and weekly jobless claims.
+- Funding ([#15](https://github.com/shreyas-shrestha/macro/issues/15)). Commercial paper rates relative to the fed funds rate, which spike when banks stop lending to each other.
+- VIX term structure ([#16](https://github.com/shreyas-shrestha/macro/issues/16)). One-month VIX against three-month VIX.
+- Emerging market spreads ([#17](https://github.com/shreyas-shrestha/macro/issues/17)). What emerging market governments pay to borrow in dollars.
 
-The rest of the work (data pipeline, baselines, backtesting, combining, strategy) is on the [issues page](https://github.com/shreyas-shrestha/macro/issues).
+The data pipeline, baselines, backtester and strategy work are on the [issues page](https://github.com/shreyas-shrestha/macro/issues) as well.
 
 ## Getting started
 
@@ -43,4 +33,4 @@ cp .env.example .env          # add a free FRED API key from fred.stlouisfed.org
 python data/data_check.py     # checks the data pulls work
 ```
 
-Setup details and how to contribute will be in `CONTRIBUTING.md` once the code scaffold is in. Research write-ups are in `research/`.
+Setup and contribution notes will go in `CONTRIBUTING.md` once the code scaffold is merged. Research proposals and write-ups are in the `research` folder.
