@@ -1,16 +1,20 @@
-# Macro Volatility Research
+# Macro Team, Trading Club @ GT
 
-Trading Club at Georgia Tech, Macro Team. Fall 2026.
+Research repository of the Macro Team at the Trading Club at Georgia Tech.
 
-## Overview
+## About the team
 
-This project evaluates whether macroeconomic and cross-asset stress indicators contain information about future S&P 500 volatility beyond what is already embedded in implied volatility and standard time-series models. The work is organized as a set of independent signals tested under a common protocol, followed by a combined forecast and a volatility-managed strategy evaluated on a held-out period.
+The Macro Team studies how macroeconomic conditions, monetary policy and cross-asset stress transmit into asset prices, and whether that transmission can be measured and forecast with the discipline expected of professional quantitative research. Work is organized as research programs. Each program states a hypothesis, fixes an evaluation protocol before results are produced, and ends in a reproducible set of results and a written report. Members own individual signals or infrastructure components within a program, and all code, data definitions and results live in this repository.
 
-## Research question
+## Current program: macro signals for equity volatility (Fall 2026)
+
+This program evaluates whether macroeconomic and cross-asset stress indicators contain information about future S&P 500 volatility beyond what is already embedded in implied volatility and standard time-series models. The work is organized as a set of independent signals tested under a common protocol, followed by a combined forecast and a volatility-managed strategy evaluated on a held-out period.
+
+### Research question
 
 Equity volatility is persistent, and the VIX provides a forward-looking market estimate of it. Both are strong benchmarks. The hypothesis under test is that financial stress often becomes visible in credit, rates and funding markets before it is fully reflected in equity option prices, and that indicators from those markets therefore improve volatility forecasts at horizons of one to three months. Each signal in the project addresses one component of this hypothesis. A negative result, where a signal adds no information conditional on the benchmarks, is treated as a valid and reportable finding.
 
-## Methodology
+### Methodology
 
 The forecast target is the realized variance of S&P 500 daily log returns over the subsequent 5, 21 and 63 trading days, annualized. Models are estimated in log variance and forecasts are converted back with a training-sample bias correction.
 
@@ -22,7 +26,7 @@ Evaluation is walk-forward and out of sample, with model re-estimation at annual
 
 Model development and selection use data from 2000 through 2017. The period from 2018 to the present is a held-out sample that is not accessed during development. All signals, the combination and the strategy are evaluated on it once, at the end of the semester.
 
-## Signals
+### Signals
 
 | Signal | Indicators | Source | Issue |
 |---|---|---|---|
@@ -34,9 +38,9 @@ Model development and selection use data from 2000 through 2017. The period from
 | VIX term structure | VIX relative to VIX3M | CBOE | [#16](https://github.com/shreyas-shrestha/macro/issues/16) |
 | EM sovereign spreads | EMBIG regional spreads | BCRP | [#17](https://github.com/shreyas-shrestha/macro/issues/17) |
 
-## Deliverables
+### Deliverables
 
-The project produces three results. The first is a scorecard in which every signal is evaluated under the protocol above and classified as advancing or not advancing against a threshold stated by its owner before any results were produced. The second is a combined forecast built from the advancing signals, using equal weighting and a constrained linear stack, scored against the best individual signal and the benchmarks. The third is a volatility-targeting strategy on the S&P 500 driven by the combined forecast, with a leverage cap and transaction costs, compared with the same rule driven by the GARCH and VIX forecasts. The headline figures are the held-out QLIKE improvement of the combination over GARCH, its Clark-West p-value, and the difference in Sharpe ratio between the strategies.
+The program produces three results. The first is a scorecard in which every signal is evaluated under the protocol above and classified as advancing or not advancing against a threshold stated by its owner before any results were produced. The second is a combined forecast built from the advancing signals, using equal weighting and a constrained linear stack, scored against the best individual signal and the benchmarks. The third is a volatility-targeting strategy on the S&P 500 driven by the combined forecast, with a leverage cap and transaction costs, compared with the same rule driven by the GARCH and VIX forecasts. The headline figures are the held-out QLIKE improvement of the combination over GARCH, its Clark-West p-value, and the difference in Sharpe ratio between the strategies.
 
 Supporting work, including the data layer, benchmarks, backtest harness, combination and the final held-out evaluation, is tracked on the [issues page](https://github.com/shreyas-shrestha/macro/issues).
 
