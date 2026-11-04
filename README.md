@@ -1,86 +1,53 @@
-# Macro Volatility Research — Trading Club @ GT
+# Macro Volatility Research
 
-Can macro stress signals forecast S&P 500 volatility beyond what VIX and GARCH already know, and does a better forecast change how much risk you should hold?
+Trading Club @ GT, Macro team. Fall 2026.
 
-This repo is the Macro team's semester project. It is built the way a research pod would build it: one target, one evaluation harness, one locked holdout, and many competing signals that each plug into the same pipeline.
+## What we're trying to find out
 
-## The question
+Everyone knows volatility clusters. If the market was wild last month it will probably be wild next month, and VIX already tells you what options traders expect. Our question is whether the macro picture adds anything on top of that.
 
-Volatility clusters and mean-reverts, so recent realized vol and VIX already forecast it well. Our hypothesis is that stress shows up in credit, rates, funding and macro data before it is fully priced in equity options. Each signal tests one slice of that hypothesis. Several will fail. That is a finding.
+Specifically: do credit spreads, the yield curve, Treasury volatility, funding stress, slow-moving economic data and emerging-market spreads tell you something about S&P 500 volatility over the next one to three months that VIX and a GARCH model don't already know?
 
-## Approach
+The intuition is that stress often shows up in credit and rates markets before it fully shows up in equity options. If that's true, it should be measurable. If it isn't, we want to be able to say so with evidence.
 
-**Target.** Realized variance of S&P 500 log returns over the next 5, 21 and 63 trading days, annualized. Models work in log variance. Defined once in `macro/targets.py`.
+## What the end result looks like
 
-**Baselines.** Trailing 21-day realized vol, HAR-RV, GARCH(1,1) refit on an expanding window, and VIX². Every signal has to beat these.
+By the end of the semester we want three things:
 
-**Signals.** One owner each. A signal is a module that returns a daily feature frame (level, change, rolling z-score) with a declared source, start date and release lag. Nothing in a feature may use information unavailable at that day's close, and a test enforces it.
+1. **A scorecard.** Every signal tested the same way, on the same data, against the same baselines, with a clear yes or no on whether it added information. We expect some to fail. A clean negative result is still a result.
+2. **A combined forecast.** The signals that survive are combined into one volatility forecast, and we show whether that beats the best single signal and the standard benchmarks.
+3. **A strategy.** That forecast drives how much S&P 500 exposure to hold, scaled down when predicted volatility is high. We show whether the better forecast actually produces a better risk-adjusted return after costs, compared with doing the same thing off VIX or GARCH alone.
 
-**Evaluation.** Every signal is scored the same way: baseline features plus signal features versus baseline alone, expanding window, annual refit, embargo equal to the horizon. Primary loss is QLIKE on variance. Significance by Clark–West with Newey–West errors. Results broken down by year and by stress episode.
+All of this is tested once, at the end, on data from 2018 onward that nobody touches during development. That's the number we'd show someone who works at a real shop.
 
-**Development vs holdout.** All development uses 2000–2017. **2018 to present is locked.** It is run once, at the end of the semester, for every signal and the combination together. The harness refuses to run past 2017 without an explicit `--holdout` flag.
+## How it fits together
 
-**Combination.** Signals that meet their pre-registered threshold are combined by equal-weight averaging and by a constrained stack, then scored like any other signal.
+- **One target.** Realized S&P 500 variance over the next 5, 21 and 63 trading days.
+- **One set of baselines.** Trailing realized vol, HAR-RV, GARCH(1,1), VIX. Every signal has to beat these.
+- **One signal per person.** Each is a small module that produces daily features using only information that was actually available on that day.
+- **One evaluation.** Walk-forward, out of sample, same metrics for everyone. Development on 2000–2017, holdout 2018 to present.
 
-**Strategy.** The combined forecast drives a vol-targeting position in SPY with a leverage cap and transaction costs, compared against the same rule on GARCH and VIX forecasts. Vol selling is studied only through a variance-risk-premium proxy, since we have no options data.
+## The signals
 
-## Signals
+| Signal | What it measures | Data |
+|---|---|---|
+| [Credit spreads](https://github.com/shreyas-shrestha/macro/issues/11) | How much extra yield risky companies pay | BAA10Y, FRED |
+| [Rates and yield curve](https://github.com/shreyas-shrestha/macro/issues/12) | Level, slope and instability of Treasury yields | DGS10, T10Y2Y, T10Y3M, FRED |
+| [Rates volatility](https://github.com/shreyas-shrestha/macro/issues/13) | Implied volatility in the Treasury market | MOVE |
+| [Slow macro](https://github.com/shreyas-shrestha/macro/issues/14) | Financial conditions and jobless claims | NFCI, ICSA, FRED |
+| [Funding and liquidity](https://github.com/shreyas-shrestha/macro/issues/15) | Cost of short-term borrowing vs the Fed rate | CPFF, FRED |
+| [VIX term structure](https://github.com/shreyas-shrestha/macro/issues/16) | Near-term vs three-month implied vol | VIX, VIX3M, CBOE |
+| [EM sovereign spreads](https://github.com/shreyas-shrestha/macro/issues/17) | Emerging-market sovereign risk | EMBIG, BCRP |
 
-| Signal | Series | Source | Issue |
-|---|---|---|---|
-| Credit spreads | BAA10Y, Baa−Aaa | FRED | [#11](https://github.com/shreyas-shrestha/macro/issues/11) |
-| Rates and yield curve | DGS10, T10Y2Y, T10Y3M | FRED | [#12](https://github.com/shreyas-shrestha/macro/issues/12) |
-| Rates volatility | MOVE | Yahoo | [#13](https://github.com/shreyas-shrestha/macro/issues/13) |
-| Slow macro | NFCI, ICSA | ALFRED vintages | [#14](https://github.com/shreyas-shrestha/macro/issues/14) |
-| Funding and liquidity | CPFF | FRED | [#15](https://github.com/shreyas-shrestha/macro/issues/15) |
-| VIX term structure | VIX, VIX3M | CBOE | [#16](https://github.com/shreyas-shrestha/macro/issues/16) |
-| EM sovereign spreads | EMBIG | BCRP | [#17](https://github.com/shreyas-shrestha/macro/issues/17) |
-
-Infrastructure: [#7](https://github.com/shreyas-shrestha/macro/issues/7) scaffold, [#8](https://github.com/shreyas-shrestha/macro/issues/8) data layer, [#9](https://github.com/shreyas-shrestha/macro/issues/9) target and baselines, [#10](https://github.com/shreyas-shrestha/macro/issues/10) harness. Then [#18](https://github.com/shreyas-shrestha/macro/issues/18) combination, [#19](https://github.com/shreyas-shrestha/macro/issues/19) strategy, [#20](https://github.com/shreyas-shrestha/macro/issues/20) holdout and final report.
-
-## Repo layout
-
-```
-macro/            installable package
-  data/           loaders (FRED, ALFRED, Yahoo, CBOE, BCRP), parquet cache, point-in-time alignment
-  features/       one module per signal, all implementing features/base.py
-  targets.py      realized variance definition and horizons
-  models/         baselines, linear, HMM, quantile GBM, combination
-  backtest/       walk-forward splits, scoring, standard report
-  strategy/       vol targeting, costs, VRP proxy
-configs/          one YAML per experiment
-experiments/      one script per experiment; writes to results/
-results/          tracked CSV summaries and figures (no raw data)
-tests/            lookahead, target and scoring tests
-research/         proposals and one-page write-ups per signal
-data/             raw and cached data, gitignored
-```
-
-The package skeleton lands with [#7](https://github.com/shreyas-shrestha/macro/issues/7). Until then only `research/` and `data/data_check.py` exist.
+The supporting work (data layer, target and baselines, backtest harness, combination, strategy and the final holdout run) is tracked in the [issues](https://github.com/shreyas-shrestha/macro/issues).
 
 ## Getting started
 
 ```bash
 git clone https://github.com/shreyas-shrestha/macro.git
 cd macro
-uv sync                      # once pyproject.toml exists
-cp .env.example .env         # add your FRED_API_KEY (free at fred.stlouisfed.org)
-python data/data_check.py    # confirms FRED and Yahoo pulls work
+cp .env.example .env          # add a free FRED API key from fred.stlouisfed.org
+python data/data_check.py     # confirms the data pulls work
 ```
 
-## How we work
-
-- One issue, one owner, one branch, one pull request, one review. `main` is protected.
-- Claim an issue by assigning yourself and posting in the team channel.
-- Before running anything, post your pre-registered success threshold as a comment on your issue. Default: at least 5% lower QLIKE than the no-signal model at h = 21 with Clark–West p < 0.10.
-- **Definition of done for a signal:** feature module with lookahead test, experiment config, forecast CSVs for all three horizons, scorecard row, one-page write-up in `research/`. Then label the issue `advancing` or `not-advancing`.
-- Do not touch data after 2017-12-31 for anything except the final holdout run.
-- Notebooks are for exploration only and are stripped of output before commit. Anything that produces a result lives in the package.
-
-## Results
-
-Scorecard to be filled in as signals complete. Headline holdout numbers (combination QLIKE improvement over GARCH, Clark–West p-value, vol-targeting Sharpe difference) will appear here after [#20](https://github.com/shreyas-shrestha/macro/issues/20).
-
-## References
-
-Two Sigma (2021), *A Machine Learning Approach to Regime Modeling* · Corsi (2009), HAR-RV · Patton (2011), robust loss functions for volatility forecasts · Clark & West (2007), nested model tests · Moreira & Muir (2017), *Volatility-Managed Portfolios* · Paye (2012), macro variables and volatility · Gilchrist & Zakrajšek (2012), excess bond premium
+Project setup and conventions are in `CONTRIBUTING.md` once the package scaffold lands. Research proposals and write-ups live in `research/`.
