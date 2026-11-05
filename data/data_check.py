@@ -18,6 +18,6 @@ spx = yf.download("^GSPC", start=DEV_START, end=HOLDOUT_START)["Close"]
 vix = yf.download("^VIX", start=DEV_START, end=HOLDOUT_START)["Close"]
 credit = fred.get_series("BAA10Y", observation_start=DEV_START, observation_end=DEV_END)
 
-print(spx.tail())
-print(vix.tail())
-print(credit.tail())
+# Slice again in case a provider returns rows outside the requested range.
+for series in (spx, vix, credit):
+    print(series.loc[DEV_START:DEV_END].tail())
