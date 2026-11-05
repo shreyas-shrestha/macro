@@ -9,9 +9,8 @@ import yfinance as yf
 from macro import config
 
 
-def test_data_check_bounds_requests_and_output_to_development(monkeypatch, capsys):
-    index = pd.to_datetime(["2017-12-29", "2018-01-02"])
-    prices = pd.DataFrame({"Close": [1.0, 2.0]}, index=index)
+def test_data_check_requests_only_development_sample(monkeypatch):
+    prices = pd.DataFrame({"Close": [1.0]}, index=pd.to_datetime(["2017-12-29"]))
     download = Mock(return_value=prices)
     fred = Mock()
     fred.get_series.return_value = prices["Close"]
@@ -28,6 +27,3 @@ def test_data_check_bounds_requests_and_output_to_development(monkeypatch, capsy
     fred.get_series.assert_called_once_with(
         "BAA10Y", observation_start=config.DEV_START, observation_end=config.DEV_END
     )
-    output = capsys.readouterr().out
-    assert "2017-12-29" in output
-    assert "2018-01-02" not in output

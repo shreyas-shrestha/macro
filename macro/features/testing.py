@@ -15,7 +15,6 @@ def assert_no_lookahead(signal: Signal, cutoffs: Iterable, end_date=DEV_END) -> 
     the cutoff build equals the full build truncated at the cutoff. A row that changes
     when later data is added (e.g. a full-sample z-score) fails. Each cutoff must be
     before ``end_date`` (default ``DEV_END``) and leave at least one row to compare.
-    At least one cutoff is required.
     """
     cutoffs = tuple(cutoffs)
     if not cutoffs:

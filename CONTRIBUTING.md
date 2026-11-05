@@ -55,13 +55,11 @@ class Credit(Signal):
     release_lag = 1  # worst case across inputs, in trading days
 
     def build(self, end_date: pd.Timestamp) -> pd.DataFrame:
-        # Index: DatetimeIndex named "decision_date". Columns: numeric.
         raise NotImplementedError
 ```
 
 - Implement `build` only. The harness calls `run`, which validates the output (index, sorting, NYSE sessions, date range, dtypes).
-- Use `macro.data.calendar.nyse_sessions(start_date, end_date)` for trading dates. Index labels are timezone-naive midnight dates; generic business-day ranges include exchange holidays and are rejected.
-- `release_lag` is documentation. Lags are applied by the loaders in `macro.data`, not by the base class.
+- Use `macro.data.calendar.nyse_sessions(start_date, end_date)` for dates. `pd.bdate_range` includes exchange holidays and is rejected.
 - Fit anything estimated (means, z-scores, regressions) on past data only.
 - The interface is version 0 and provisional until #8 and #10 merge. Depend only on `build` and the four attributes.
 
@@ -84,8 +82,4 @@ It rebuilds the signal at each cutoff and checks the rows match the full build. 
 
 ## Definition of done
 
-- `uv run pytest`, `uv run ruff check .` and `uv run ruff format --check .` pass.
-- New signals include an `assert_no_lookahead` test.
-- No holdout data (2018 onward) loaded or reported.
-- Docs updated: README signal table, `data/README.md` release lags, `research/` write-up where the issue asks for one.
-- One approving review.
+The checklist in `.github/pull_request_template.md`, plus one approving review.

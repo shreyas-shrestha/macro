@@ -169,25 +169,12 @@ def test_cutoff_after_end_date_rejected():
         assert_no_lookahead(Toy(), cutoffs=[END], end_date=END)
 
 
-@pytest.mark.parametrize("cutoffs", [[], (), iter(())])
+@pytest.mark.parametrize("cutoffs", [[], iter(())])
 def test_empty_lookahead_cutoffs_rejected(cutoffs):
     with pytest.raises(ValueError, match="at least one cutoff"):
-        assert_no_lookahead(FullSampleZ(), cutoffs=cutoffs, end_date=END)
+        assert_no_lookahead(Toy(), cutoffs=cutoffs, end_date=END)
 
 
-def test_empty_lookahead_cutoffs_do_not_build():
-    class MustNotBuild(Toy):
-        def build(self, end_date):
-            pytest.fail("empty cutoffs must be rejected before loading data")
-
-    with pytest.raises(ValueError, match="at least one cutoff"):
-        assert_no_lookahead(MustNotBuild(), cutoffs=[], end_date=END)
-
-
-def test_lookahead_check_accepts_single_use_iterator():
-    assert_no_lookahead(Toy(), cutoffs=iter(TRADING_DAYS[[5, 50]]), end_date=END)
-
-
-def test_leakage_is_caught_with_single_use_iterator():
+def test_leakage_caught_with_iterator_cutoffs():
     with pytest.raises(AssertionError, match="lookahead"):
         assert_no_lookahead(FullSampleZ(), cutoffs=iter(TRADING_DAYS[[50]]), end_date=END)

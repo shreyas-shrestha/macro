@@ -1,31 +1,12 @@
 """Base class for signals.
 
-Interface version 0. Provisional until #8 and #10 merge; changes go through a PR that
-updates every existing subclass in the same change. Signal modules depend only on
-``build``'s signature and the four class attributes below, never on other base-class
-internals.
+Interface version 0, provisional until #8 and #10 merge. A change here updates every
+existing subclass in the same PR.
 
-Timing convention
------------------
-- Decision date t is an NYSE trading day. The row indexed t may use only information
-  published by 16:00 ET (market close) on t.
-- A series observed on day s with release lag L trading days enters the row at s + L,
-  never earlier.
-- The forecast made at t targets realized variance over trading days t+1 ... t+h. Day
-  t's return is never part of the target.
-
-Examples: BAA10Y for day s is published by FRED the next morning, so L = 1 and it is
-first usable at decision date s + 1. The VIX close on t has L = 0 and is usable at t.
-
-Writing a signal
-----------------
-Subclass ``Signal``, set ``name``, ``source``, ``start_date`` and ``release_lag``, and
-implement ``build(end_date)``. The harness calls ``run``, which calls ``build`` and then
-``validate``. Each signal's tests call ``macro.features.testing.assert_no_lookahead``.
-
-``release_lag`` is metadata: the worst-case lag in trading days across the signal's
-inputs, used for documentation. The base class does not shift data by it; per-series
-lags and vintages are applied by the loaders in ``macro.data``.
+Timing convention (the single source; CONTRIBUTING.md has the worked example):
+decision date t is an NYSE trading day, and the row indexed t uses only information
+published by the 16:00 ET close on t. A series observed on day s with release lag L
+enters at s + L. The forecast made at t targets realized variance over t+1 ... t+h.
 """
 
 from abc import ABC, abstractmethod
@@ -55,7 +36,8 @@ class Signal(ABC):
         name: short identifier, e.g. ``"credit"``.
         source: where the inputs come from, e.g. ``"FRED"``.
         start_date: first decision date the signal can produce.
-        release_lag: worst-case input lag in trading days (metadata only).
+        release_lag: worst-case input lag in trading days. Documentation only; the
+            loaders in ``macro.data`` apply the actual lags.
     """
 
     name: str
@@ -67,10 +49,9 @@ class Signal(ABC):
     def build(self, end_date: pd.Timestamp) -> pd.DataFrame:
         """Return features for decision dates from ``start_date`` through ``end_date``.
 
-        Must use only information available at each row's decision date (see module
-        docstring). Index: sorted, unique, timezone-naive NYSE session dates in a
-        ``DatetimeIndex`` named ``decision_date`` (midnight date labels, not timestamps).
-        Columns: numeric.
+        Index: ``DatetimeIndex`` named ``decision_date`` of NYSE session dates (see
+        ``macro.data.calendar.nyse_sessions``). Columns: numeric. ``validate`` lists the
+        exact checks.
         """
 
     def run(self, end_date) -> pd.DataFrame:

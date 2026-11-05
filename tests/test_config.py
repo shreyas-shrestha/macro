@@ -7,8 +7,9 @@ from macro.config import load_env
 
 @pytest.mark.parametrize("use_parent", [False, True])
 def test_load_env_searches_working_directory_and_parents(tmp_path, monkeypatch, use_parent):
-    monkeypatch.setattr(os, "environ", os.environ.copy())
-    monkeypatch.delenv("MACRO_ENV_TEST_VALUE", raising=False)
+    # setenv first so monkeypatch removes the variable load_env adds.
+    monkeypatch.setenv("MACRO_ENV_TEST_VALUE", "")
+    monkeypatch.delenv("MACRO_ENV_TEST_VALUE")
     (tmp_path / ".env").write_text("MACRO_ENV_TEST_VALUE=from_file\n")
     workdir = tmp_path / "analysis" if use_parent else tmp_path
     workdir.mkdir(exist_ok=True)
