@@ -1,32 +1,14 @@
 # Macro Team, Trading Club @ GT
 
-The Macro Team is the group within the Trading Club at Georgia Tech focused on global macro: interest rates, credit, currencies, sovereign risk, monetary policy and the way conditions in those markets move equities and other assets. The team covers macro developments, builds systematic signals from macro data, and tests whether they hold up under the standards used in professional quantitative research. This repository holds the team's code, data definitions, research write-ups and results.
+The Macro Team is the global macro group within the Trading Club at Georgia Tech. The team covers rates, credit, currencies, sovereign risk and monetary policy, builds systematic signals from macro data, and tests them to the standards used in professional quantitative research. This repository holds the team's code, data definitions, research write-ups and results.
 
-## How the team works
+## Current work: macro signals for equity volatility
 
-Work is organized as research programs. Each program states a hypothesis, fixes an evaluation protocol before any results are produced, and ends in a reproducible set of results and a written report. Members own individual signals or infrastructure components within a program. Proposals and write-ups are kept in `research/`, and every result in a report can be regenerated from code and configuration in this repository.
+Fall 2026. We are testing whether macroeconomic and cross-asset stress indicators carry information about future S&P 500 volatility beyond what is already in the VIX and standard time-series models. The hypothesis is that stress appears in credit, rates and funding markets before it is fully priced in equity options.
 
-## Current program: macro signals for equity volatility (Fall 2026)
+Each member owns one signal. Every signal is evaluated under the same protocol: an increment to a benchmark that already includes realized volatility and the VIX, walk-forward and out of sample, scored by QLIKE with Clark-West tests for significance, with point-in-time data and a lookahead test required before merge. Development uses 2000 through 2017. The period from 2018 onward is held out and evaluated once at the end of the semester.
 
-This program evaluates whether macroeconomic and cross-asset stress indicators contain information about future S&P 500 volatility beyond what is already embedded in implied volatility and standard time-series models. The work is organized as a set of independent signals tested under a common protocol, followed by a combined forecast and a volatility-managed strategy evaluated on a held-out period.
-
-### Research question
-
-Equity volatility is persistent, and the VIX provides a forward-looking market estimate of it. Both are strong benchmarks. The hypothesis under test is that financial stress often becomes visible in credit, rates and funding markets before it is fully reflected in equity option prices, and that indicators from those markets therefore improve volatility forecasts at horizons of one to three months. Each signal in the project addresses one component of this hypothesis. A negative result, where a signal adds no information conditional on the benchmarks, is treated as a valid and reportable finding.
-
-### Methodology
-
-The forecast target is the realized variance of S&P 500 daily log returns over the subsequent 5, 21 and 63 trading days, annualized. Models are estimated in log variance and forecasts are converted back with a training-sample bias correction.
-
-Benchmarks are trailing 21-day realized volatility, the HAR-RV model of Corsi (2009), a GARCH(1,1) model re-estimated on an expanding window, and the squared VIX scaled to the forecast horizon. Every signal is evaluated as an increment to a benchmark specification that already includes recent realized volatility and the VIX.
-
-Each signal is implemented as a module that produces a daily feature set from a declared data source with a declared release lag, such that no feature value depends on information unavailable at the close of the decision date. Point-in-time alignment is handled centrally in the data layer, and a lookahead test is required for every signal before it is merged.
-
-Evaluation is walk-forward and out of sample, with model re-estimation at annual intervals and an embargo equal to the forecast horizon between the training and forecast dates. The primary loss is QLIKE on variance, which is robust to measurement error in the realized variance proxy (Patton 2011). Incremental predictive content is assessed with the Clark and West (2007) test for nested models using Newey-West standard errors, and results are reported by calendar year and by stress episode.
-
-Model development and selection use data from 2000 through 2017. The period from 2018 to the present is a held-out sample that is not accessed during development. All signals, the combination and the strategy are evaluated on it once, at the end of the semester.
-
-### Signals
+The signals that pass their pre-stated thresholds are combined into a single forecast, which drives a volatility-targeting strategy on the S&P 500 compared against the same rule on GARCH and VIX forecasts.
 
 | Signal | Indicators | Source | Issue |
 |---|---|---|---|
@@ -38,11 +20,7 @@ Model development and selection use data from 2000 through 2017. The period from
 | VIX term structure | VIX relative to VIX3M | CBOE | [#16](https://github.com/shreyas-shrestha/macro/issues/16) |
 | EM sovereign spreads | EMBIG regional spreads | BCRP | [#17](https://github.com/shreyas-shrestha/macro/issues/17) |
 
-### Deliverables
-
-The program produces three results. The first is a scorecard in which every signal is evaluated under the protocol above and classified as advancing or not advancing against a threshold stated by its owner before any results were produced. The second is a combined forecast built from the advancing signals, using equal weighting and a constrained linear stack, scored against the best individual signal and the benchmarks. The third is a volatility-targeting strategy on the S&P 500 driven by the combined forecast, with a leverage cap and transaction costs, compared with the same rule driven by the GARCH and VIX forecasts. The headline figures are the held-out QLIKE improvement of the combination over GARCH, its Clark-West p-value, and the difference in Sharpe ratio between the strategies.
-
-Supporting work, including the data layer, benchmarks, backtest harness, combination and the final held-out evaluation, is tracked on the [issues page](https://github.com/shreyas-shrestha/macro/issues).
+Infrastructure, combination, strategy and the final held-out evaluation are tracked on the [issues page](https://github.com/shreyas-shrestha/macro/issues). Proposals and write-ups are in `research/`.
 
 ## Getting started
 
@@ -53,12 +31,4 @@ cp .env.example .env          # requires a FRED API key (free at fred.stlouisfed
 python data/data_check.py     # verifies data access
 ```
 
-Environment setup, repository conventions and the definition of done for a signal are documented in `CONTRIBUTING.md` once the package scaffold is merged. Research proposals and signal write-ups are in `research/`.
-
-## References
-
-Clark, T. and West, K. (2007). Approximately normal tests for equal predictive accuracy in nested models. *Journal of Econometrics*.
-Corsi, F. (2009). A simple approximate long-memory model of realized volatility. *Journal of Financial Econometrics*.
-Moreira, A. and Muir, T. (2017). Volatility-managed portfolios. *Journal of Finance*.
-Patton, A. (2011). Volatility forecast comparison using imperfect volatility proxies. *Journal of Econometrics*.
-Paye, B. (2012). Déjà vol: Predictive regressions for aggregate stock market volatility using macroeconomic variables. *Journal of Financial Economics*.
+Environment setup and contribution guidelines are in `CONTRIBUTING.md` once the package scaffold is merged.
