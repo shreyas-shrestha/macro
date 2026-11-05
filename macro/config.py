@@ -1,7 +1,7 @@
 """Constants and environment setup shared across the package."""
 
 import pandas as pd
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 DEV_START = pd.Timestamp("2000-01-01")
 DEV_END = pd.Timestamp("2017-12-31")
@@ -19,4 +19,4 @@ def load_env() -> bool:
 
     Existing environment variables are not overridden. Returns True if a file was found.
     """
-    return load_dotenv()
+    return load_dotenv(find_dotenv(usecwd=True))
