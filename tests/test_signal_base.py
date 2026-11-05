@@ -2,12 +2,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from macro.data.calendar import nyse_sessions
 from macro.features.base import INDEX_NAME, Signal, SignalError
 from macro.features.testing import assert_no_lookahead
 
 START = pd.Timestamp("2000-01-03")
 END = pd.Timestamp("2000-06-30")
-TRADING_DAYS = pd.bdate_range(START, END)
+TRADING_DAYS = nyse_sessions(START, END)
 # Raw series indexed by observation date s.
 RAW = pd.Series(np.arange(len(TRADING_DAYS), dtype=float), index=TRADING_DAYS)
 
@@ -121,6 +122,31 @@ def test_bad_output_raises(output, match):
         bad_output(output).run(END)
 
 
+@pytest.mark.parametrize("date", ["2000-01-08", "2000-01-17", "2000-04-21", "2001-09-11"])
+def test_non_session_decision_dates_rejected(date):
+    with pytest.raises(SignalError, match="NYSE"):
+        bad_output(frame([date])).run("2001-09-17")
+
+
+def test_intraday_decision_dates_rejected():
+    with pytest.raises(SignalError, match="NYSE"):
+        bad_output(frame(["2000-01-03 12:00"])).run(END)
+
+
+def test_timezone_aware_decision_dates_rejected():
+    with pytest.raises(SignalError, match="timezone-naive"):
+        bad_output(frame(pd.DatetimeIndex([START], tz="UTC"))).run(END)
+
+
+def test_single_early_close_session_is_valid():
+    out = bad_output(frame(["2000-11-24"])).run("2000-11-24")
+    assert len(out) == 1
+
+
+def test_empty_output_before_start_is_valid():
+    assert bad_output(frame([])).run(START - pd.Timedelta(days=1)).empty
+
+
 def test_lagged_value_appears_one_day_after_observation():
     out = Lagged().run(END)
     s = TRADING_DAYS[10]
@@ -141,3 +167,27 @@ def test_full_sample_zscore_is_caught():
 def test_cutoff_after_end_date_rejected():
     with pytest.raises(ValueError):
         assert_no_lookahead(Toy(), cutoffs=[END], end_date=END)
+
+
+@pytest.mark.parametrize("cutoffs", [[], (), iter(())])
+def test_empty_lookahead_cutoffs_rejected(cutoffs):
+    with pytest.raises(ValueError, match="at least one cutoff"):
+        assert_no_lookahead(FullSampleZ(), cutoffs=cutoffs, end_date=END)
+
+
+def test_empty_lookahead_cutoffs_do_not_build():
+    class MustNotBuild(Toy):
+        def build(self, end_date):
+            pytest.fail("empty cutoffs must be rejected before loading data")
+
+    with pytest.raises(ValueError, match="at least one cutoff"):
+        assert_no_lookahead(MustNotBuild(), cutoffs=[], end_date=END)
+
+
+def test_lookahead_check_accepts_single_use_iterator():
+    assert_no_lookahead(Toy(), cutoffs=iter(TRADING_DAYS[[5, 50]]), end_date=END)
+
+
+def test_leakage_is_caught_with_single_use_iterator():
+    with pytest.raises(AssertionError, match="lookahead"):
+        assert_no_lookahead(FullSampleZ(), cutoffs=iter(TRADING_DAYS[[50]]), end_date=END)

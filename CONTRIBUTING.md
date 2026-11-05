@@ -14,6 +14,8 @@ uv run pytest
 uv run python data/data_check.py
 ```
 
+The data check downloads and prints only the development sample (2000 through 2017).
+
 On macOS, if downloads fail with certificate errors, set `SSL_CERT_FILE` in `.env` to the output of `uv run python -m certifi`.
 
 ## Workflow
@@ -57,7 +59,8 @@ class Credit(Signal):
         raise NotImplementedError
 ```
 
-- Implement `build` only. The harness calls `run`, which validates the output (index, sorting, date range, dtypes).
+- Implement `build` only. The harness calls `run`, which validates the output (index, sorting, NYSE sessions, date range, dtypes).
+- Use `macro.data.calendar.nyse_sessions(start_date, end_date)` for trading dates. Index labels are timezone-naive midnight dates; generic business-day ranges include exchange holidays and are rejected.
 - `release_lag` is documentation. Lags are applied by the loaders in `macro.data`, not by the base class.
 - Fit anything estimated (means, z-scores, regressions) on past data only.
 - The interface is version 0 and provisional until #8 and #10 merge. Depend only on `build` and the four attributes.

@@ -32,6 +32,8 @@ from abc import ABC, abstractmethod
 
 import pandas as pd
 
+from macro.data.calendar import nyse_sessions
+
 INDEX_NAME = "decision_date"
 
 _REQUIRED_ATTRIBUTES = {
@@ -66,7 +68,8 @@ class Signal(ABC):
         """Return features for decision dates from ``start_date`` through ``end_date``.
 
         Must use only information available at each row's decision date (see module
-        docstring). Index: sorted, unique ``DatetimeIndex`` named ``decision_date``.
+        docstring). Index: sorted, unique, timezone-naive NYSE session dates in a
+        ``DatetimeIndex`` named ``decision_date`` (midnight date labels, not timestamps).
         Columns: numeric.
         """
 
@@ -96,7 +99,8 @@ class Signal(ABC):
         """Raise ``SignalError`` if ``frame`` breaks the output contract.
 
         Checks: DataFrame with a ``DatetimeIndex`` named ``decision_date``; index sorted
-        and unique; no rows after ``end_date`` or before ``start_date``; numeric columns.
+        and unique; timezone-naive NYSE session dates; no rows after ``end_date`` or
+        before ``start_date``; numeric columns.
         Does not detect lookahead inside values; use ``assert_no_lookahead`` for that.
         """
         cls = type(self).__name__
@@ -107,6 +111,8 @@ class Signal(ABC):
             raise SignalError(f"{cls} index must be a DatetimeIndex, got {type(index)}")
         if index.name != INDEX_NAME:
             raise SignalError(f"{cls} index must be named {INDEX_NAME!r}, got {index.name!r}")
+        if index.tz is not None:
+            raise SignalError(f"{cls} index must use timezone-naive decision dates")
         if not index.is_unique:
             raise SignalError(f"{cls} index has duplicate decision dates")
         if not index.is_monotonic_increasing:
@@ -115,6 +121,11 @@ class Signal(ABC):
             raise SignalError(f"{cls} has rows after end_date {end_date.date()}")
         if len(index) and index[0] < self.start_date:
             raise SignalError(f"{cls} has rows before start_date {self.start_date.date()}")
+        if len(index):
+            sessions = nyse_sessions(index[0].normalize(), index[-1].normalize())
+            bad_dates = index[~index.isin(sessions)]
+            if len(bad_dates):
+                raise SignalError(f"{cls} has non-NYSE session dates: {bad_dates.tolist()}")
         bad = [c for c in frame.columns if not pd.api.types.is_numeric_dtype(frame[c])]
         if bad:
             raise SignalError(f"{cls} has non-numeric columns: {bad}")

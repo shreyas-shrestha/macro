@@ -14,9 +14,11 @@ from fredapi import Fred  # noqa: E402
 fred = Fred(api_key=os.getenv("FRED_API_KEY"))
 
 # yfinance's end date is exclusive; FRED's observation_end is inclusive.
-spx = yf.download("^GSPC", start=DEV_START, end=HOLDOUT_START)["Close"]
-vix = yf.download("^VIX", start=DEV_START, end=HOLDOUT_START)["Close"]
-credit = fred.get_series("BAA10Y", observation_start=DEV_START, observation_end=DEV_END)
+spx = yf.download("^GSPC", start=DEV_START, end=HOLDOUT_START)["Close"].loc[DEV_START:DEV_END]
+vix = yf.download("^VIX", start=DEV_START, end=HOLDOUT_START)["Close"].loc[DEV_START:DEV_END]
+credit = fred.get_series("BAA10Y", observation_start=DEV_START, observation_end=DEV_END).loc[
+    DEV_START:DEV_END
+]
 
 print(spx.tail())
 print(vix.tail())

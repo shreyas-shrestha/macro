@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Macro Team, Trading Club @ GT: macro signals for S&P 500 volatility."
 requires-python = ">=3.12"
 dependencies = [
+    "exchange-calendars>=4.13.2,<5",
     "fredapi>=0.5.2",
     "numpy>=2.5.4",
     "pandas>=3.1.1",

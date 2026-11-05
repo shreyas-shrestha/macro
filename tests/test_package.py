@@ -7,6 +7,7 @@ MODULES = [
     "macro",
     "macro.config",
     "macro.data",
+    "macro.data.calendar",
     "macro.features",
     "macro.features.base",
     "macro.features.testing",
