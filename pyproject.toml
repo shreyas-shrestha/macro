@@ -7,7 +7,7 @@ dependencies = [
     "exchange-calendars>=4.13.2,<5",
     "fredapi>=0.5.2",
     "numpy>=2.5.4",
-    "pandas>=3.1.1",
+    "pandas>=3.1.1,<4",
     "pyarrow>=26.0.1",
     "python-dotenv>=1.2.4",
     "yfinance>=1.8.0",
@@ -29,6 +29,8 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# exchange-calendars relies on Series.values behaviour that pandas 4 changes; pandas is capped <4.
+filterwarnings = ["ignore:Series.values returning an ndarray:pandas.errors.Pandas4Warning"]
 
 [dependency-groups]
 dev = [
