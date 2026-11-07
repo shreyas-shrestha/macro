@@ -3,7 +3,6 @@
 import numpy as np
 import pandas as pd
 
-
 RATING_ORDER = {
     "AAA": 1,
     "AA+": 2,
@@ -43,10 +42,10 @@ def add_rating_class(frame: pd.DataFrame, rating_col: str = "splticrm") -> pd.Da
     out = frame.copy()
     out["rating"] = normalize_sp_rating(out[rating_col])
     out["rating_ord"] = out["rating"].map(RATING_ORDER)
-    out["rating_class"] = np.where(
-        out["rating_ord"].le(IG_MAX),
-        "IG",
-        np.where(out["rating_ord"].notna(), "HY", pd.NA),
+    # The comparison yields a nullable boolean mask (NA for unrated rows); map keeps
+    # NA as missing, whereas np.where would call bool(pd.NA) and raise.
+    out["rating_class"] = (
+        out["rating_ord"].le(IG_MAX).map({True: "IG", False: "HY"}).astype("string")
     )
     return out
 
@@ -86,9 +85,7 @@ def issuer_day_spread(
 def aggregate_hy_ig(issuer_day: pd.DataFrame) -> pd.DataFrame:
     """Build equal-issuer-weighted daily HY and IG spread series."""
     wide = (
-        issuer_day.groupby(["trd_exctn_dt", "rating_class"], observed=True)[
-            "issuer_spread_bp"
-        ]
+        issuer_day.groupby(["trd_exctn_dt", "rating_class"], observed=True)["issuer_spread_bp"]
         .median()
         .unstack("rating_class")
         .rename(columns={"HY": "hy_spread_bp", "IG": "ig_spread_bp"})
