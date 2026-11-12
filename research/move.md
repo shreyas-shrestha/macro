@@ -38,3 +38,60 @@ comparison if credit coverage differs. Keep 2018 onward locked.
 
 Scorecard and threshold status are pending the shared harness and credit
 features. There is no empirical result yet on whether MOVE adds information.
+
+
+## MOVE data and diagnostic plot
+
+Source: [Yahoo Finance ^MOVE historical prices](https://finance.yahoo.com/quote/%5EMOVE/history/). The plot uses unadjusted daily closes from 2003 through 2017.
+
+[View the diagnostic plot](move_diagnostics.png)
+
+The three panels show the daily close, the change in index points from 20 NYSE sessions earlier, and the NYSE sessions with no Yahoo close. The plot uses raw closes before applying the signal's release lag or forward-fill.
+
+### Reproduce the plot
+
+Run this from the repository root, where `pyproject.toml` is located, with `macro/features/move.py` present on your local branch.
+
+```bash
+uv run --with matplotlib python - <<'PY'
+import matplotlib.pyplot as plt
+import pandas as pd
+
+from macro.data.calendar import nyse_sessions
+from macro.features.move import load_move
+
+start = pd.Timestamp("2003-01-01")
+end = pd.Timestamp("2017-12-31")
+close = load_move(start, end).reindex(nyse_sessions(start, end))
+change = close.diff(20)
+missing_dates = close.index[close.isna()]
+
+fig, axes = plt.subplots(
+    3, 1, sharex=True, figsize=(10, 6),
+    layout="constrained", height_ratios=[2, 2, 1],
+)
+
+axes[0].set_title(
+    "Yahoo Finance MOVE | Development sample, 2003–2017",
+    loc="left", weight="bold",
+)
+axes[0].plot(close.index, close, color="#24537b", linewidth=0.85)
+axes[0].set_ylabel("Daily close")
+
+axes[1].plot(change.index, change, color="#197971", linewidth=0.75)
+axes[1].axhline(0, color="#748291", linewidth=0.6)
+axes[1].set_ylabel("20-session change")
+
+axes[2].eventplot(
+    missing_dates, lineoffsets=0.5, linelengths=0.7, colors="#bd4a2d",
+)
+axes[2].set_ylim(0, 1)
+axes[2].set_yticks([])
+axes[2].set_ylabel("Missing close")
+
+for ax in axes:
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.grid(axis="x", alpha=0.2)
+
+fig.savefig("research/move_diagnostics.png", dpi=150)
+```
