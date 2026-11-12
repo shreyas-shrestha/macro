@@ -12,6 +12,7 @@ Every request stops at DEV_END, so no holdout observation is downloaded.
 
 import json
 import os
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -51,41 +52,67 @@ def gap_report(name: str, raw: pd.Series) -> None:
     print(f"  missing sessions (first 15): {[d.date() for d in sessions[missing][:15]]}")
 
 
+def first_releases(series_id: str) -> pd.DataFrame:
+    """Earliest ALFRED vintage date and value per observation, queried a year at a time.
+
+    FRED caps one request at 2000 vintage dates, so the real-time window is cut into
+    calendar years. Observations whose first vintage predates the window (the series'
+    initial load into ALFRED) come back stamped with the window start and are dropped.
+    """
+    frames = []
+    for year in range(1986, DEV_END.year + 1):
+        start = pd.Timestamp(year=year, month=1, day=1)
+        end = min(pd.Timestamp(year=year, month=12, day=31), DEV_END)
+        try:
+            data = fred_json(
+                series_id=series_id,
+                observation_start=start.strftime("%Y-%m-%d"),
+                observation_end=end.strftime("%Y-%m-%d"),
+                realtime_start=start.strftime("%Y-%m-%d"),
+                realtime_end=(end + pd.Timedelta(days=15)).strftime("%Y-%m-%d"),
+                limit=100000,
+            )
+        except urllib.error.HTTPError as err:
+            print(f"  {series_id} {year}: {err} {err.read().decode()[:200]}")
+            continue
+        finally:
+            time.sleep(0.6)  # FRED allows 120 requests a minute
+        obs = pd.DataFrame(data.get("observations", []))
+        if obs.empty:
+            continue
+        obs = obs[obs["value"] != "."]
+        obs["date"] = pd.to_datetime(obs["date"])
+        obs["realtime_start"] = pd.to_datetime(obs["realtime_start"])
+        obs = obs[obs["realtime_start"] > obs["date"]]
+        frames.append(obs.sort_values("realtime_start").groupby("date").first())
+    if not frames:
+        return pd.DataFrame(columns=["realtime_start", "value"])
+    return pd.concat(frames)[["realtime_start", "value"]]
+
+
 def release_lag_report(series_id: str, current: pd.Series | None = None) -> None:
     """First-release date minus observation date, in NYSE sessions (ALFRED)."""
-    try:
-        data = fred_json(
-            series_id=series_id,
-            realtime_start="1776-07-04",
-            realtime_end="9999-12-31",
-            observation_start="1986-01-01",
-            observation_end=DEV_END.strftime("%Y-%m-%d"),
-            output_type=4,  # initial release only
-            limit=100000,
-        )
-    except urllib.error.HTTPError as err:
-        print(f"{series_id}: ALFRED request failed: {err} {err.read().decode()[:300]}")
+    first = first_releases(series_id)
+    if first.empty:
+        print(f"{series_id}: no ALFRED vintages after the initial load in the development sample")
         return
-    obs = pd.DataFrame(data["observations"])
-    obs = obs[obs["value"] != "."]
-    obs["date"] = pd.to_datetime(obs["date"])
-    first = pd.to_datetime(obs.set_index("date")["realtime_start"])
     sessions = nyse_sessions("1985-01-01", "2030-12-31")
-    lag = sessions.searchsorted(first.to_numpy()) - sessions.searchsorted(first.index)
+    released = first["realtime_start"].to_numpy()
+    lag = sessions.searchsorted(released) - sessions.searchsorted(first.index)
     lag = pd.Series(lag, index=first.index)
-    tracked = lag[first > first.min()]  # drop observations loaded with the first vintage
-    print(f"{series_id}: ALFRED first vintage {first.min().date()}")
+    print(
+        f"{series_id}: {len(lag)} observations with a tracked first release, "
+        f"{first.index.min().date()}..{first.index.max().date()}"
+    )
+    print("  first-release lag in NYSE sessions:")
+    print("  " + lag.value_counts().sort_index().to_string().replace("\n", "\n  "))
     if current is not None:
-        initial = pd.to_numeric(obs.set_index("date")["value"])
+        initial = pd.to_numeric(first["value"])
         both = pd.concat([initial, current], axis=1, join="inner").dropna()
         revised = (both.iloc[:, 0] - both.iloc[:, 1]).abs() > 1e-9
-        print(f"  initial release differs from today's value: {revised.sum()} of {len(both)}")
-    if len(tracked):
-        counts = tracked.value_counts().sort_index().to_string()
-        print(f"  first-release lag in NYSE sessions (n={len(tracked)}):")
-        print("  " + counts.replace("\n", "\n  "))
-    else:
-        print("  every observation arrived with the first vintage; no lag to measure")
+        print(f"  first release differs from today's value: {revised.sum()} of {len(both)}")
+        if revised.any():
+            print(f"  e.g. {[d.date() for d in both.index[revised][:10]]}")
     print(
         "  ALFRED stamps dates, not times: a lag of 1 does not prove the value was out by 16:00 ET."
     )
