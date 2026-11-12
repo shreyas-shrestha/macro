@@ -12,6 +12,7 @@ Every request stops at DEV_END, so no holdout observation is downloaded.
 
 import json
 import os
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -50,32 +51,43 @@ def gap_report(name: str, raw: pd.Series) -> None:
     print(f"  missing sessions (first 15): {[d.date() for d in sessions[missing][:15]]}")
 
 
-def release_lag_report(series_id: str) -> None:
-    """First ALFRED vintage date minus observation date, in NYSE sessions."""
-    data = fred_json(
-        series_id=series_id,
-        realtime_start="1776-07-04",
-        realtime_end="9999-12-31",
-        observation_start="1986-01-01",
-        observation_end=DEV_END.strftime("%Y-%m-%d"),
-    )
+def release_lag_report(series_id: str, current: pd.Series | None = None) -> None:
+    """First-release date minus observation date, in NYSE sessions (ALFRED)."""
+    try:
+        data = fred_json(
+            series_id=series_id,
+            realtime_start="1776-07-04",
+            realtime_end="9999-12-31",
+            observation_start="1986-01-01",
+            observation_end=DEV_END.strftime("%Y-%m-%d"),
+            output_type=4,  # initial release only
+            limit=100000,
+        )
+    except urllib.error.HTTPError as err:
+        print(f"{series_id}: ALFRED request failed: {err} {err.read().decode()[:300]}")
+        return
     obs = pd.DataFrame(data["observations"])
     obs = obs[obs["value"] != "."]
     obs["date"] = pd.to_datetime(obs["date"])
-    obs["realtime_start"] = pd.to_datetime(obs["realtime_start"])
-    first = obs.groupby("date")["realtime_start"].min()
-    vintages = obs.groupby("date")["realtime_start"].nunique()
+    first = pd.to_datetime(obs.set_index("date")["realtime_start"])
     sessions = nyse_sessions("1985-01-01", "2030-12-31")
     lag = sessions.searchsorted(first.to_numpy()) - sessions.searchsorted(first.index)
     lag = pd.Series(lag, index=first.index)
-    tracked = lag[first > first.min()]  # drop observations whose first vintage is the series' first
-    print(f"{series_id}: ALFRED vintages start {first.min().date()}")
-    print(f"  observations revised after first release: {(vintages > 1).sum()} of {len(vintages)}")
+    tracked = lag[first > first.min()]  # drop observations loaded with the first vintage
+    print(f"{series_id}: ALFRED first vintage {first.min().date()}")
+    if current is not None:
+        initial = pd.to_numeric(obs.set_index("date")["value"])
+        both = pd.concat([initial, current], axis=1, join="inner").dropna()
+        revised = (both.iloc[:, 0] - both.iloc[:, 1]).abs() > 1e-9
+        print(f"  initial release differs from today's value: {revised.sum()} of {len(both)}")
     if len(tracked):
+        counts = tracked.value_counts().sort_index().to_string()
         print(f"  first-release lag in NYSE sessions (n={len(tracked)}):")
-        print("  " + tracked.value_counts().sort_index().to_string().replace("\n", "\n  "))
+        print("  " + counts.replace("\n", "\n  "))
+    else:
+        print("  every observation arrived with the first vintage; no lag to measure")
     print(
-        "  ALFRED stamps dates, not times: a lag of 1 does not show the value was out by 16:00 ET."
+        "  ALFRED stamps dates, not times: a lag of 1 does not prove the value was out by 16:00 ET."
     )
 
 
@@ -98,7 +110,7 @@ def main() -> None:
     for sid, series in raw.items():
         gap_report(sid, series)
     for sid in ("BAA10Y", "DBAA", "DGS10"):
-        release_lag_report(sid)
+        release_lag_report(sid, raw.get(sid))
     hy_oas_report()
 
     features = Credit().run(DEV_END)
