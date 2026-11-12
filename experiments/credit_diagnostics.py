@@ -73,7 +73,9 @@ def first_releases(series_id: str) -> pd.DataFrame:
                 limit=100000,
             )
         except urllib.error.HTTPError as err:
-            print(f"  {series_id} {year}: {err} {err.read().decode()[:200]}")
+            body = err.read().decode()
+            if "does not exist in ALFRED" not in body:  # years before ALFRED tracking
+                print(f"  {series_id} {year}: {err} {body[:200]}")
             continue
         finally:
             time.sleep(0.6)  # FRED allows 120 requests a minute

@@ -4,12 +4,14 @@ Datasets.
 
 | Series | Source | Start | Frequency | Revised | Release lag *L* |
 |---|---|---|---|---|---|
-| BAA10Y (Baa minus 10-year CMT) | FRED, Interest Rate Spreads | 1986-01-02 | Daily, business days | No* | 2 NYSE sessions |
-| DBAA (Moody's seasoned Baa yield) | FRED / Moody's | 1986-01-02 | Daily | No* | 2 NYSE sessions |
-| DAAA (Moody's seasoned Aaa yield) | FRED / Moody's | 1983-01-03 | Daily | No* | 2 NYSE sessions |
+| BAA10Y (Baa minus 10-year CMT) | FRED, Interest Rate Spreads | 1986-01-02 | Daily, business days | No (0 of 943) | 2 NYSE sessions |
+| DBAA (Moody's seasoned Baa yield) | FRED / Moody's | 1986-01-02 | Daily | No (0 of 943) | 2 NYSE sessions |
+| DAAA (Moody's seasoned Aaa yield) | FRED / Moody's | 1983-01-03 | Daily | Not checked; same source as DBAA | 2 NYSE sessions |
 | BAMLH0A0HYM2 (ICE BofA HY OAS) | FRED / ICE | Rolling 3 years only | Daily | Rarely | Not used |
 
-\* To be confirmed from ALFRED vintages by `experiments/credit_diagnostics.py`.
+Revision counts compare each observation's first ALFRED vintage with today's value,
+2014–2017 (ALFRED does not track these series earlier). Run
+`experiments/credit_diagnostics.py` to reproduce every number in this section.
 
 **Release lag.** BAA10Y for day *s* is the Moody's Baa yield minus Treasury's 10-year
 constant maturity yield for *s*. FRED posts it on the next business day, but not

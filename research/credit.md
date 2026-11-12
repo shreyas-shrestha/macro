@@ -1,6 +1,6 @@
 # Signal: credit spreads (BAA10Y)
 
-Issue #11 · Owner: Sahil Ravani · Status: **features built, awaiting harness (#8–#10)**
+Issue #11 · Owner: Sahil Ravani · Status: **features and diagnostics done, awaiting harness (#8–#10)**
 
 ## Hypothesis
 
@@ -13,9 +13,11 @@ case the VIX already contains the spread's information and the increment is abou
 
 ## Data
 
-BAA10Y, DBAA and DAAA from FRED. All are daily from 1986 or earlier and are taken to be
-unrevised, which ALFRED should confirm. Release lag is two NYSE sessions because FRED
-can post after the 16:00 ET cutoff (`data/README.md` has the evidence and the fill rule).
+BAA10Y, DBAA and DAAA from FRED, daily from 1986 or earlier. ALFRED shows no revisions
+(0 of 943 BAA10Y and DBAA observations, 2014–2017). FRED dates 88% of BAA10Y releases
+the next session, but posts after the 16:00 ET cutoff, so the release lag is two NYSE
+sessions (`data/README.md` has the lag table and the fill rule). Gaps are single
+bond-market holidays only (73 sessions since 1986, none longer than one day).
 FRED now serves only three years of the ICE BofA HY OAS (BAMLH0A0HYM2), so it is not
 usable for 2000–2017. #24 covers HY spreads from TRACE.
 
