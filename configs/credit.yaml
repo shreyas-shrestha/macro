@@ -1,0 +1,23 @@
+# Credit spread signal (#11). Read by experiments/run_signal.py once #10 merges.
+# Schema is provisional: align field names with #10's baseline config when it lands.
+signal: credit
+module: macro.features.credit
+class: Credit
+horizons: [5, 21, 63]
+baseline: vix_rv          # log RV + log VIX, ridge on log variance (#10)
+comparisons:
+  - name: credit
+    features: [baa10y_level, baa10y_change_20, baa10y_z_252, baa_aaa_level]
+  - name: credit_plus_move  # issue asks for the run with MOVE features included (#13)
+    features: [baa10y_level, baa10y_change_20, baa10y_z_252, baa_aaa_level]
+    extra_signals: [move]
+  - name: move_only         # reference row so the credit increment over MOVE is visible
+    features: []
+    extra_signals: [move]
+threshold:                  # pre-registered on #11 before any run
+  horizon: 21
+  qlike_reduction: 0.05
+  clark_west_p: 0.10
+outputs:
+  forecasts: results/forecasts/credit_h{h}.csv
+  scorecard: results/scorecard.csv
