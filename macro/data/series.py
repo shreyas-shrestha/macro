@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 from macro.config import DEV_END
-from macro.data import yahoo
+from macro.data import alfred, bcrp, fred, yahoo
 from macro.data.cache import cached
 from macro.data.calendar import INDEX_NAME, nyse_sessions
 from macro.data.pit import align
@@ -25,12 +25,30 @@ SERIES = {
     "VIX": SeriesSpec("yahoo", "^VIX", pd.Timestamp("1990-01-02"), 0, 0),
     "VIX3M": SeriesSpec("yahoo", "^VIX3M", pd.Timestamp("2006-07-17"), 0, 0),
     "MOVE": SeriesSpec("yahoo", "^MOVE", pd.Timestamp("2002-11-12"), 1, 3),
+    "BAA10Y": SeriesSpec("fred", "BAA10Y", pd.Timestamp("1990-01-02"), 2, 3),
+    "DBAA": SeriesSpec("fred", "DBAA", pd.Timestamp("1990-01-02"), 2, 3),
+    "DAAA": SeriesSpec("fred", "DAAA", pd.Timestamp("1990-01-02"), 2, 3),
+    "DGS10": SeriesSpec("fred", "DGS10", pd.Timestamp("1990-01-02"), 2, 3),
+    "T10Y2Y": SeriesSpec("fred", "T10Y2Y", pd.Timestamp("1990-01-02"), 2, 3),
+    "T10Y3M": SeriesSpec("fred", "T10Y3M", pd.Timestamp("1990-01-02"), 2, 3),
+    "CPFF": SeriesSpec("fred", "CPFF", pd.Timestamp("1997-01-02"), 2, 3),
+    "NFCI": SeriesSpec("alfred", "NFCI", pd.Timestamp("1990-01-02"), 1, 10),
+    "ICSA": SeriesSpec("alfred", "ICSA", pd.Timestamp("1990-01-02"), 1, 10),
+    "EMBIG": SeriesSpec("bcrp", "PD04707XD", pd.Timestamp("1998-01-02"), 2, 3),
+    "EMBIG_LATAM": SeriesSpec("bcrp", "PD04708XD", pd.Timestamp("1998-01-02"), 2, 3),
+    "EMBIG_PERU": SeriesSpec("bcrp", "PD04709XD", pd.Timestamp("1998-01-02"), 2, 3),
+    "EMBIG_ARGENTINA": SeriesSpec("bcrp", "PD04710XD", pd.Timestamp("1998-01-02"), 2, 3),
+    "EMBIG_BRAZIL": SeriesSpec("bcrp", "PD04711XD", pd.Timestamp("1998-01-02"), 2, 3),
+    "EMBIG_ECUADOR": SeriesSpec("bcrp", "PD04712XD", pd.Timestamp("1998-01-02"), 2, 3),
+    "EMBIG_MEXICO": SeriesSpec("bcrp", "PD04713XD", pd.Timestamp("1998-01-02"), 2, 3),
+    "EMBIG_VENEZUELA": SeriesSpec("bcrp", "PD04714XD", pd.Timestamp("1998-01-02"), 2, 3),
+    "EMBIG_COLOMBIA": SeriesSpec("bcrp", "PD04715XD", pd.Timestamp("1998-01-02"), 2, 3),
 }
 
 # A fetcher takes (source_id, start, end) and returns floats indexed by stamp date:
 # tz-naive midnight dates within [start, end], NaN for missing, rows sharing a stamp in
 # observation order.
-FETCHERS = {"yahoo": yahoo.fetch}
+FETCHERS = {"yahoo": yahoo.fetch, "fred": fred.fetch, "alfred": alfred.fetch, "bcrp": bcrp.fetch}
 
 
 def load(name: str, end_date=DEV_END, *, holdout: bool = False, refresh: bool = False) -> pd.Series:
