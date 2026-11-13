@@ -90,9 +90,8 @@ def test_fetcher_contract_violations_raise_before_caching(
 def test_bad_cache_file_is_rejected_on_read(fake_source, tmp_path):
     path = tmp_path / "fake" / "F1.parquet"
     path.parent.mkdir()
-    pd.Series([1.0], index=pd.to_datetime(["2018-06-01"])).rename("value").to_frame().to_parquet(
-        path
-    )
+    holdout_row = pd.Series([1.0], index=pd.to_datetime(["2018-06-01"]))
+    holdout_row.to_frame("value").to_parquet(path)
     with pytest.raises(ValueError, match="outside"):
         series.load("FAKE", "2010-03-31")
 

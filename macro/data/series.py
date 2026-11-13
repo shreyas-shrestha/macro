@@ -64,15 +64,15 @@ def load(name: str, end_date=DEV_END, *, holdout: bool = False, refresh: bool = 
 
 
 def _check_raw(name: str, raw: pd.Series, start: pd.Timestamp, end: pd.Timestamp) -> None:
-    """Raise ``ValueError`` if a fetcher broke its contract (see ``FETCHERS``)."""
+    """Raise ``ValueError`` if raw data breaks the fetcher contract (see ``FETCHERS``)."""
     index = raw.index
     if not isinstance(index, pd.DatetimeIndex) or index.tz is not None:
-        raise ValueError(f"{name}: fetcher must return a tz-naive DatetimeIndex")
+        raise ValueError(f"{name}: index must be a tz-naive DatetimeIndex")
     if not (index == index.normalize()).all():
-        raise ValueError(f"{name}: fetcher returned stamps with a time of day")
+        raise ValueError(f"{name}: stamps have a time of day")
     if raw.dropna().empty:
         raise ValueError(f"{name}: no data; if this is a cached file, load with refresh=True")
     if not pd.api.types.is_float_dtype(raw):
-        raise ValueError(f"{name}: fetcher must return floats, got {raw.dtype}")
+        raise ValueError(f"{name}: values must be floats, got {raw.dtype}")
     if index.min() < start or index.max() > end:
-        raise ValueError(f"{name}: fetcher returned stamps outside {start.date()}..{end.date()}")
+        raise ValueError(f"{name}: stamps outside {start.date()}..{end.date()}")
