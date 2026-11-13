@@ -45,29 +45,34 @@ def load(name: str, end_date=DEV_END, *, holdout: bool = False, refresh: bool = 
     if end_date > DEV_END and not holdout:
         raise ValueError(f"{name}: {end_date.date()} is in the holdout; pass holdout=True")
     if end_date < spec.start:
-        return pd.Series(dtype=float, index=pd.DatetimeIndex([], name=INDEX_NAME), name=name)
+        index = pd.DatetimeIndex([], dtype="datetime64[ns]", name=INDEX_NAME)
+        return pd.Series(dtype=float, index=index, name=name)
 
     def fetch(end):
         raw = FETCHERS[spec.source](spec.source_id, spec.start, end)
-        check_raw(name, raw, spec.start, end)
+        _check_raw(name, raw, spec.start, end)
         return raw
 
     if holdout:
         raw = fetch(end_date)
     else:
         raw = cached(f"{spec.source}/{spec.source_id}", lambda: fetch(DEV_END), refresh)
+        # Also check what was read: the file may predate these checks or be edited.
+        _check_raw(name, raw, spec.start, DEV_END)
     sessions = nyse_sessions(spec.start, end_date).rename(INDEX_NAME)
     return align(raw.loc[:end_date], sessions, spec.lag, spec.max_carry).rename(name)
 
 
-def check_raw(name: str, raw: pd.Series, start: pd.Timestamp, end: pd.Timestamp) -> None:
+def _check_raw(name: str, raw: pd.Series, start: pd.Timestamp, end: pd.Timestamp) -> None:
     """Raise ``ValueError`` if a fetcher broke its contract (see ``FETCHERS``)."""
     index = raw.index
     if not isinstance(index, pd.DatetimeIndex) or index.tz is not None:
         raise ValueError(f"{name}: fetcher must return a tz-naive DatetimeIndex")
     if not (index == index.normalize()).all():
         raise ValueError(f"{name}: fetcher returned stamps with a time of day")
+    if raw.dropna().empty:
+        raise ValueError(f"{name}: no data; if this is a cached file, load with refresh=True")
     if not pd.api.types.is_float_dtype(raw):
         raise ValueError(f"{name}: fetcher must return floats, got {raw.dtype}")
-    if len(index) and (index.min() < start or index.max() > end):
+    if index.min() < start or index.max() > end:
         raise ValueError(f"{name}: fetcher returned stamps outside {start.date()}..{end.date()}")

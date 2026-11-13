@@ -29,4 +29,6 @@ holdout reads are never cached.
 **VIX timing exception.** CBOE's VIX and VIX3M closes are struck at 16:15 ET, 15 minutes
 after the cutoff in CONTRIBUTING.md. They are used at lag 0 anyway: they are the
 benchmark every signal must beat, and a one-day lag would handicap the benchmark and
-flatter the signals. The 15 minutes of extra information is a known, accepted deviation.
+flatter the signals. VIX3M is also an input to the term-structure signal (#16), where
+the extra 15 minutes help the signal instead; #16 reports a lag-1 run as a robustness
+check.

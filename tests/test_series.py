@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -51,21 +52,20 @@ def test_load_fetches_once_through_dev_end_and_then_reads_the_cache(fake_source)
     assert fake_source == [("F1", pd.Timestamp("2010-01-04"), DEV_END)]
 
 
-@pytest.mark.parametrize("cached_first", [False, True])
 @pytest.mark.parametrize(
-    "t", ["2010-06-30", "2010-07-03", "2010-04-02"]
-)  # session, weekend, Good Friday
-def test_load_at_t_matches_a_later_load_up_to_t(fake_source, cached_first, t):
-    if cached_first:
-        series.load("FAKE", "2010-01-29")
-    full = series.load("FAKE", "2010-12-31")
-    pd.testing.assert_series_equal(series.load("FAKE", t), full.loc[:t])
+    "t", ["2010-06-30", "2010-07-03", "2010-04-02"], ids=["session", "weekend", "good_friday"]
+)
+def test_load_at_t_matches_a_later_load_up_to_t(fake_source, t):
+    at_t = series.load("FAKE", t)  # cache miss
+    full = series.load("FAKE", "2010-12-31")  # cache hit
+    pd.testing.assert_series_equal(at_t, full.loc[:t])
 
 
 def test_load_before_start_is_empty(fake_source):
     out = series.load("FAKE", "2009-12-31")
-    assert out.empty and out.index.name == INDEX_NAME and out.name == "FAKE"
+    assert out.empty and out.name == "FAKE" and out.index.name == INDEX_NAME
     assert not fake_source
+    assert out.index.dtype == series.load("FAKE", "2010-03-31").index.dtype
 
 
 @pytest.mark.parametrize(
@@ -75,6 +75,7 @@ def test_load_before_start_is_empty(fake_source):
         (pd.Series([1.0], index=pd.to_datetime(["2010-01-05 16:15"])), "time of day"),
         (pd.Series([1], index=pd.to_datetime(["2010-01-05"])), "floats"),
         (pd.Series([1.0], index=pd.to_datetime(["2018-01-02"])), "outside"),
+        (pd.Series([np.nan], index=pd.to_datetime(["2010-01-05"])), "no data"),
     ],
 )
 def test_fetcher_contract_violations_raise_before_caching(
@@ -84,6 +85,16 @@ def test_fetcher_contract_violations_raise_before_caching(
     with pytest.raises(ValueError, match=match):
         series.load("FAKE", "2010-03-31")
     assert not list(tmp_path.rglob("*"))
+
+
+def test_bad_cache_file_is_rejected_on_read(fake_source, tmp_path):
+    path = tmp_path / "fake" / "F1.parquet"
+    path.parent.mkdir()
+    pd.Series([1.0], index=pd.to_datetime(["2018-06-01"])).rename("value").to_frame().to_parquet(
+        path
+    )
+    with pytest.raises(ValueError, match="outside"):
+        series.load("FAKE", "2010-03-31")
 
 
 def test_refresh_refetches(fake_source):
