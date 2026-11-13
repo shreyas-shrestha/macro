@@ -27,7 +27,7 @@ def fetch(series_id: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
         series_id, observation_start=start, observation_end=end
     )
     if observed.empty:
-        return observed.astype(float)
+        return pd.Series(dtype=float, index=pd.DatetimeIndex([]))
     posted = pd.Series(observed.astype(float).to_numpy(), index=posting_days(observed.index))
     return posted.loc[start:end]
 
