@@ -14,16 +14,14 @@ from macro.data.pit import align
 
 @pytest.fixture
 def respond(monkeypatch):
-    """Serve each payload in turn to urlopen (dicts as JSON) and record requested URLs."""
+    """Serve ``payload`` to urlopen (a dict as JSON) and record requested URLs."""
     urls = []
 
-    def install(*payloads):
-        bodies = iter(payloads)
-
+    def install(payload):
         def urlopen(request, timeout):
             urls.append(getattr(request, "full_url", request))
-            body = next(bodies)
-            return io.BytesIO(body if isinstance(body, bytes) else json.dumps(body).encode())
+            body = payload if isinstance(payload, bytes) else json.dumps(payload).encode()
+            return io.BytesIO(body)
 
         monkeypatch.setattr(urllib.request, "urlopen", urlopen)
         return urls
@@ -105,7 +103,7 @@ def test_fred_requires_an_api_key(monkeypatch):
 
 
 def test_fred_values_are_stamped_by_fed_posting_day(monkeypatch):
-    observed = pd.to_datetime(["2017-10-06", "2017-11-09", "2017-12-29"])
+    observed = pd.to_datetime(["2016-11-10", "2017-10-06", "2017-12-29"])
 
     class FakeFred:
         def __init__(self, api_key):
@@ -116,9 +114,9 @@ def test_fred_values_are_stamped_by_fed_posting_day(monkeypatch):
 
     monkeypatch.setenv("FRED_API_KEY", "test")
     monkeypatch.setattr(fred, "Fred", FakeFred)
-    out = fred.fetch("DGS10", pd.Timestamp("2017-01-03"), pd.Timestamp("2017-12-31"))
-    # Columbus Day (10-09) and the observed Veterans Day (11-10) are NYSE sessions on
-    # which FRED does not post; the 12-29 value is posted in 2018 and dropped.
-    assert list(out.index) == [pd.Timestamp("2017-10-10"), pd.Timestamp("2017-11-13")]
-    aligned = align(out, nyse_sessions("2017-10-02", "2017-11-17"), lag=1, max_carry=0)
+    out = fred.fetch("DGS10", pd.Timestamp("2016-01-04"), pd.Timestamp("2017-12-31"))
+    # Veterans Day (2016-11-11) and Columbus Day (2017-10-09) are NYSE sessions on which
+    # FRED does not post; the 12-29 value is posted in 2018 and dropped.
+    assert list(out.index) == [pd.Timestamp("2016-11-14"), pd.Timestamp("2017-10-10")]
+    aligned = align(out.loc["2017"], nyse_sessions("2017-10-02", "2017-10-13"), lag=1, max_carry=0)
     assert aligned.first_valid_index() == pd.Timestamp("2017-10-11")

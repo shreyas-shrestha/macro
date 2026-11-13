@@ -36,7 +36,7 @@ def fetch(series_id: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
 
 def parse(rows: list[dict]) -> pd.Series:
     """Values indexed by first-release date, ties in observation order; "." is missing."""
-    frame = pd.DataFrame(rows)[["date", "realtime_start", "value"]]
+    frame = pd.DataFrame(rows, columns=["date", "realtime_start", "value"])
     frame["date"] = pd.to_datetime(frame["date"])
     frame["realtime_start"] = pd.to_datetime(frame["realtime_start"])
     frame["value"] = pd.to_numeric(frame["value"], errors="coerce")

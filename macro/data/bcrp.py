@@ -7,8 +7,6 @@ import pandas as pd
 
 API = "https://estadisticas.bcrp.gob.pe/estadisticas/series/api"
 MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic"]
-
-
 USER_AGENT = "macro-research (https://github.com/shreyas-shrestha/macro)"
 
 

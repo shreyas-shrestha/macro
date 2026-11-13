@@ -19,14 +19,15 @@ def api_key() -> str:
 
 
 def fetch(series_id: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
-    """Values of ``series_id`` stamped by posting day, ``start`` through ``end`` inclusive.
+    """Values of ``series_id`` stamped by ``posting_days``, ``start`` through ``end``.
 
-    FRED posts a day's value on the next Federal Reserve business day. Values posted
-    after ``end`` are dropped.
+    Values posted after ``end`` are dropped.
     """
     observed = Fred(api_key=api_key()).get_series(
         series_id, observation_start=start, observation_end=end
     )
+    if observed.empty:
+        return observed.astype(float)
     posted = pd.Series(observed.astype(float).to_numpy(), index=posting_days(observed.index))
     return posted.loc[start:end]
 
