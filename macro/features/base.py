@@ -13,9 +13,7 @@ from abc import ABC, abstractmethod
 
 import pandas as pd
 
-from macro.data.calendar import nyse_sessions
-
-INDEX_NAME = "decision_date"
+from macro.data.calendar import INDEX_NAME, nyse_sessions
 
 _REQUIRED_ATTRIBUTES = {
     "name": str,
