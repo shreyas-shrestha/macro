@@ -10,11 +10,11 @@ def align(raw: pd.Series, sessions: pd.DatetimeIndex, lag: int, max_carry: int) 
     vintage data the date it was first published. A value stamped s is usable ``lag``
     sessions after the first session on or after s, so a value stamped on a day the NYSE
     is closed (Good Friday, a weekend) is never usable earlier than that session's own
-    value. When several values become usable on one session, the latest stamp wins.
-    Sessions with no new value carry the last one forward for at most ``max_carry``
-    sessions; longer gaps stay NaN.
+    value. When several values become usable on one session, the latest stamp wins, and
+    among equal stamps the last row in ``raw``. Sessions with no new value carry the last
+    one forward for at most ``max_carry`` sessions; longer gaps stay NaN.
     """
-    raw = raw.dropna().sort_index()
+    raw = raw.dropna().sort_index(kind="stable")
     usable = sessions.searchsorted(raw.index, side="left") + lag
     keep = usable < len(sessions)
     stamped = pd.Series(raw.to_numpy()[keep], index=sessions[usable[keep]])

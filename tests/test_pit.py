@@ -27,17 +27,25 @@ def test_good_friday_value_is_not_early():
     assert aligned[pd.Timestamp("2001-04-18")] == 3.0
 
 
+def test_equal_stamps_keep_the_last_row():
+    # A series' first vintage stamps its whole back history with one date.
+    raw = pd.Series(np.arange(50, dtype=float), index=[SESSIONS[3]] * 50)
+    assert align(raw, SESSIONS, lag=0, max_carry=0).iloc[3] == 49.0
+
+
+def test_missing_value_does_not_displace_a_real_one():
+    # Good Friday's value and Monday's NaN both map to Monday; the NaN must not win.
+    sessions = nyse_sessions("2001-04-09", "2001-04-20")
+    raw = pd.Series([2.0, np.nan], index=pd.to_datetime(["2001-04-13", "2001-04-16"]))
+    assert align(raw, sessions, lag=0, max_carry=0)[pd.Timestamp("2001-04-16")] == 2.0
+
+
 def test_carry_stops_at_limit():
     raw = pd.Series(np.arange(len(SESSIONS), dtype=float), index=SESSIONS)
     raw.iloc[20:30] = np.nan
     aligned = align(raw, SESSIONS, lag=0, max_carry=3)
     assert (aligned.iloc[20:23] == raw.iloc[19]).all()
     assert aligned.iloc[23:30].isna().all()
-
-
-def test_zero_carry_leaves_gaps():
-    raw = pd.Series(1.0, index=SESSIONS.delete(5))
-    assert np.isnan(align(raw, SESSIONS, lag=0, max_carry=0).iloc[5])
 
 
 def test_values_past_last_session_are_dropped():

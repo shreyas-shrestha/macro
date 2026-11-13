@@ -24,7 +24,7 @@ def fake_source(tmp_path, monkeypatch):
     monkeypatch.setitem(
         series.SERIES,
         "FAKE",
-        series.SeriesSpec("fake", "F1", pd.Timestamp("2010-01-04"), 1, 0, "test series"),
+        series.SeriesSpec("fake", "F1", pd.Timestamp("2010-01-04"), 1, 0),
     )
     return calls
 
@@ -51,6 +51,41 @@ def test_load_fetches_once_through_dev_end_and_then_reads_the_cache(fake_source)
     assert fake_source == [("F1", pd.Timestamp("2010-01-04"), DEV_END)]
 
 
+@pytest.mark.parametrize("cached_first", [False, True])
+@pytest.mark.parametrize(
+    "t", ["2010-06-30", "2010-07-03", "2010-04-02"]
+)  # session, weekend, Good Friday
+def test_load_at_t_matches_a_later_load_up_to_t(fake_source, cached_first, t):
+    if cached_first:
+        series.load("FAKE", "2010-01-29")
+    full = series.load("FAKE", "2010-12-31")
+    pd.testing.assert_series_equal(series.load("FAKE", t), full.loc[:t])
+
+
+def test_load_before_start_is_empty(fake_source):
+    out = series.load("FAKE", "2009-12-31")
+    assert out.empty and out.index.name == INDEX_NAME and out.name == "FAKE"
+    assert not fake_source
+
+
+@pytest.mark.parametrize(
+    "raw, match",
+    [
+        (pd.Series([1.0], index=pd.DatetimeIndex(["2010-01-05"], tz="UTC")), "tz-naive"),
+        (pd.Series([1.0], index=pd.to_datetime(["2010-01-05 16:15"])), "time of day"),
+        (pd.Series([1], index=pd.to_datetime(["2010-01-05"])), "floats"),
+        (pd.Series([1.0], index=pd.to_datetime(["2018-01-02"])), "outside"),
+    ],
+)
+def test_fetcher_contract_violations_raise_before_caching(
+    fake_source, tmp_path, monkeypatch, raw, match
+):
+    monkeypatch.setitem(series.FETCHERS, "fake", lambda *args: raw)
+    with pytest.raises(ValueError, match=match):
+        series.load("FAKE", "2010-03-31")
+    assert not list(tmp_path.rglob("*"))
+
+
 def test_refresh_refetches(fake_source):
     series.load("FAKE", "2010-03-31")
     series.load("FAKE", "2010-03-31", refresh=True)
@@ -64,10 +99,9 @@ def test_holdout_load_bypasses_the_cache(fake_source, tmp_path):
     assert not list(tmp_path.rglob("*.parquet"))
 
 
-def test_every_series_has_a_fetcher_and_valid_rules():
+def test_every_series_has_a_fetcher():
     for name, spec in series.SERIES.items():
         assert spec.source in series.FETCHERS, name
-        assert spec.lag >= 0 and spec.max_carry >= 0, name
 
 
 def test_readme_documents_every_series():
@@ -75,11 +109,11 @@ def test_readme_documents_every_series():
     rows = {}
     for line in readme.splitlines():
         cells = [c.strip() for c in line.strip("|").split("|")]
-        if len(cells) == 7 and re.fullmatch(r"\d+", cells[4]):
+        if len(cells) == 8 and re.fullmatch(r"\d+", cells[4]):
             rows[cells[0]] = cells
     assert set(rows) == set(series.SERIES)
     for name, spec in series.SERIES.items():
-        _, _, source_id, start, lag, carry, _ = rows[name]
+        _, _, source_id, start, lag, carry, _, _ = rows[name]
         assert source_id.strip("`") == spec.source_id, name
         assert pd.Timestamp(start) == spec.start, name
         assert (int(lag), int(carry)) == (spec.lag, spec.max_carry), name

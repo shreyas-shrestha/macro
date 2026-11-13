@@ -1,5 +1,6 @@
 """On-disk parquet cache for raw downloads."""
 
+import os
 from collections.abc import Callable
 from pathlib import Path
 
@@ -15,5 +16,8 @@ def cached(key: str, fetch: Callable[[], pd.Series], refresh: bool = False) -> p
         return pd.read_parquet(path)["value"]
     series = fetch()
     path.parent.mkdir(parents=True, exist_ok=True)
-    series.rename("value").to_frame().to_parquet(path)
+    # Write then rename, so an interrupted run never leaves a half-written file.
+    tmp = path.with_suffix(".tmp")
+    series.rename("value").to_frame().to_parquet(tmp)
+    os.replace(tmp, path)
     return series
