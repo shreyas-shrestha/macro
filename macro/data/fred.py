@@ -1,9 +1,11 @@
-"""Daily and weekly series from FRED, by observation date."""
+"""Daily series from FRED, stamped by the day FRED posts them."""
 
 import os
 
+import numpy as np
 import pandas as pd
 from fredapi import Fred
+from pandas.tseries.holiday import USFederalHolidayCalendar
 
 from macro.config import load_env
 
@@ -17,8 +19,26 @@ def api_key() -> str:
 
 
 def fetch(series_id: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
-    """Values of ``series_id`` observed ``start`` through ``end`` inclusive."""
-    series = Fred(api_key=api_key()).get_series(
+    """Values of ``series_id`` stamped by posting day, ``start`` through ``end`` inclusive.
+
+    FRED posts a day's value on the next Federal Reserve business day. Values posted
+    after ``end`` are dropped.
+    """
+    observed = Fred(api_key=api_key()).get_series(
         series_id, observation_start=start, observation_end=end
     )
-    return series.astype(float).loc[start:end]
+    posted = pd.Series(observed.astype(float).to_numpy(), index=posting_days(observed.index))
+    return posted.loc[start:end]
+
+
+def posting_days(observed: pd.DatetimeIndex) -> pd.DatetimeIndex:
+    """The Federal Reserve business day after each observation date."""
+    last = observed.max() + pd.Timedelta(days=14)
+    holidays = USFederalHolidayCalendar().holidays(observed.min(), last)
+    days = np.busday_offset(
+        observed.to_numpy().astype("datetime64[D]"),
+        1,
+        roll="backward",
+        holidays=holidays.to_numpy().astype("datetime64[D]"),
+    )
+    return pd.DatetimeIndex(days.astype("datetime64[ns]"))

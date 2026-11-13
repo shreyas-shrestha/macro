@@ -9,7 +9,7 @@ import pandas as pd
 from macro.data.fred import api_key
 
 API = "https://api.stlouisfed.org/fred/series/observations"
-# Before ALFRED tracked a series, its whole back history shares one first-release date.
+# ALFRED's earliest real-time date, so every vintage is included.
 EARLIEST = "1776-07-04"
 
 
@@ -35,9 +35,10 @@ def fetch(series_id: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
 
 
 def parse(rows: list[dict]) -> pd.Series:
-    frame = pd.DataFrame(rows, columns=["date", "realtime_start", "value"])
+    """Values indexed by first-release date, ties in observation order; "." is missing."""
+    frame = pd.DataFrame(rows)[["date", "realtime_start", "value"]]
     frame["date"] = pd.to_datetime(frame["date"])
     frame["realtime_start"] = pd.to_datetime(frame["realtime_start"])
-    frame["value"] = pd.to_numeric(frame["value"], errors="coerce")  # "." is missing
+    frame["value"] = pd.to_numeric(frame["value"], errors="coerce")
     frame = frame.sort_values(["realtime_start", "date"])
     return pd.Series(frame["value"].to_numpy(), index=pd.DatetimeIndex(frame["realtime_start"]))

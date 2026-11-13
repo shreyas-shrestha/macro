@@ -14,13 +14,16 @@ from macro.data.pit import align
 
 @pytest.fixture
 def respond(monkeypatch):
-    """Serve ``payload`` as JSON to urlopen and record the requested URLs."""
+    """Serve each payload in turn to urlopen (dicts as JSON) and record requested URLs."""
     urls = []
 
-    def install(payload):
-        def urlopen(url, timeout):
-            urls.append(url)
-            return io.BytesIO(json.dumps(payload).encode())
+    def install(*payloads):
+        bodies = iter(payloads)
+
+        def urlopen(request, timeout):
+            urls.append(getattr(request, "full_url", request))
+            body = next(bodies)
+            return io.BytesIO(body if isinstance(body, bytes) else json.dumps(body).encode())
 
         monkeypatch.setattr(urllib.request, "urlopen", urlopen)
         return urls
@@ -50,6 +53,12 @@ def test_bcrp_fetch_requests_the_range_and_trims(respond):
     out = bcrp.fetch("PD04708XD", pd.Timestamp("2017-12-01"), pd.Timestamp("2017-12-31"))
     assert urls[0].endswith("/PD04708XD/json/2017-12-01/2017-12-31")
     assert list(out) == [1.0]
+
+
+def test_bcrp_non_json_page_raises(respond):
+    respond(b"<html>challenge</html>")
+    with pytest.raises(RuntimeError, match="PD04708XD"):
+        bcrp.fetch("PD04708XD", pd.Timestamp("2017-12-01"), pd.Timestamp("2017-12-31"))
 
 
 def test_alfred_fetch_asks_for_first_releases_published_by_end(respond, monkeypatch):
@@ -95,15 +104,21 @@ def test_fred_requires_an_api_key(monkeypatch):
         fred.fetch("BAA10Y", pd.Timestamp("2010-01-04"), pd.Timestamp("2010-12-31"))
 
 
-def test_fred_fetch_trims_to_the_range(monkeypatch):
+def test_fred_values_are_stamped_by_fed_posting_day(monkeypatch):
+    observed = pd.to_datetime(["2017-10-06", "2017-11-09", "2017-12-29"])
+
     class FakeFred:
         def __init__(self, api_key):
             pass
 
         def get_series(self, series_id, observation_start, observation_end):
-            return pd.Series([1, 2], index=pd.to_datetime(["2010-12-31", "2011-01-03"]))
+            return pd.Series([1, 2, 3], index=observed)
 
     monkeypatch.setenv("FRED_API_KEY", "test")
     monkeypatch.setattr(fred, "Fred", FakeFred)
-    out = fred.fetch("BAA10Y", pd.Timestamp("2010-01-04"), pd.Timestamp("2010-12-31"))
-    assert list(out) == [1.0]
+    out = fred.fetch("DGS10", pd.Timestamp("2017-01-03"), pd.Timestamp("2017-12-31"))
+    # Columbus Day (10-09) and the observed Veterans Day (11-10) are NYSE sessions on
+    # which FRED does not post; the 12-29 value is posted in 2018 and dropped.
+    assert list(out.index) == [pd.Timestamp("2017-10-10"), pd.Timestamp("2017-11-13")]
+    aligned = align(out, nyse_sessions("2017-10-02", "2017-11-17"), lag=1, max_carry=0)
+    assert aligned.first_valid_index() == pd.Timestamp("2017-10-11")

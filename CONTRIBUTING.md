@@ -36,7 +36,7 @@ On macOS, if downloads fail with certificate errors, set `SSL_CERT_FILE` in `.en
 - A series observed on day *s* with release lag *L* trading days enters the row at *s + L*, never earlier.
 - The forecast made at *t* targets realized variance over trading days *t+1 … t+h*. Day *t*'s return is never part of the target.
 
-Example: BAA10Y for day *s* is posted by FRED on the next business day, sometimes after the close, so *L* = 2 and it is first usable at *s + 2*. The VIX close on *t* has *L* = 0 and is usable at *t*, although it is struck at 16:15 ET: a deliberate exception, explained in `data/README.md`.
+Example: FRED posts BAA10Y for day *s* on the next Federal Reserve business day *p*, sometimes after the close, so the value is stamped *p* with *L* = 1 and first usable the session after *p*. The VIX close on *t* has *L* = 0 and is usable at *t*, although it is struck at 16:15 ET: a deliberate exception, explained in `data/README.md`.
 
 ## Writing a signal
 
