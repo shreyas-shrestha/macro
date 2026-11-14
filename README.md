@@ -19,6 +19,7 @@ The signals that pass their pre-stated thresholds are combined into a single for
 | Funding and liquidity | 3-month commercial paper minus fed funds | FRED | [#15](https://github.com/shreyas-shrestha/macro/issues/15) |
 | VIX term structure | VIX relative to VIX3M | CBOE | [#16](https://github.com/shreyas-shrestha/macro/issues/16) |
 | EM sovereign spreads | EMBIG regional spreads | BCRP | [#17](https://github.com/shreyas-shrestha/macro/issues/17) |
+| High-yield credit | TRACE HY and IG issuer-median spreads, HY minus IG | WRDS TRACE Enhanced, Compustat ratings, FRED H.15 | [#24](https://github.com/shreyas-shrestha/macro/issues/24) |
 
 Infrastructure, combination, strategy and the final held-out evaluation are tracked on the [issues page](https://github.com/shreyas-shrestha/macro/issues). Proposals and write-ups are in `research/`.
 

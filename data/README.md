@@ -1,1 +1,8 @@
 Datasets.
+
+| Series | Source | Start | Release lag (trading days) | Notes |
+|---|---|---|---|---|
+| HY / IG issuer-median TRACE spreads (`hy_spread_bp`, `ig_spread_bp`, `hy_ig_gap_bp`) | WRDS `trace_enhanced.trace_enhanced`, `trace_enhanced.camasterfile`, `comp.adsprate`, `comp.security`, `wrdsapps_link_crsp_bond.bondcrsp_link`, `crsp.stocknames` | 2006-01-09 (bond-days); first decision date 2006-01-10 | 1 | Pulled and built by `scripts/hy_credit/run_hy_once.py` (build step: `python -m macro.data.hy_runs build-dev`) into `data/cache/hy_credit/` (licensed, never committed). The last Legacy Compustat rating is 2017-02-28, so the rated panel ends 2017-06-01. See `research/hy_credit.md`. |
+| Treasury constant-maturity curve (`DGS1MO` ... `DGS30`) | FRED / Federal Reserve H.15 | 2000-01-03 | 1 | Cached in `data/cache/fred/` through 2017-12-29; `DGS30` treated as missing 2002-02-18 to 2006-02-08 (discontinued). |
+| Residual (within-rating) TRACE spread stress (`residual_p90`, `residual_iqr`, `residual_positive_share`) | Derived from the HY panel above | 2006-01-09 (positive share from 2006-04-05) | 1 | Built by `scripts/hy_credit/residual_research.py` into `data/cache/hy_residual/` (licensed issuer-level rows, never committed); aggregates in `results/hy_credit/residual/`. Development-only, descriptive. Ends 2017-06-01 with the ratings. |
+| Point-in-time GICS sector per issuer (`gsector`) | WRDS `comp.co_hgic` (historical GICS spells) | spells from 1999-06-30; capped 2017-12-31 | n/a (effective-dated) | Pulled once by `scripts/hy_credit/wrds_pull_sector.py` into `data/cache/hy_residual/sector/` (licensed, never committed); assigned by `macro.data.sector.gics_sector_asof`. 98.3% of rated issuer-days classified. |
