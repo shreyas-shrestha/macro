@@ -63,18 +63,23 @@ Tuesday 10-10 and first used Wednesday 10-11.
 
 Checked against ALFRED's first-release dates for July 2014–2017: FRED posted 97.5% of
 DGS10 values on the stamped posting day and the rest 1–3 business days later. Those
-delays are FRED's; the Fed publishes H.15 on the posting day, so *L* = 1 stands. Moody's
-Baa and Aaa yields (BAA10Y, DBAA, DAAA) for 2016-10-07 to 2017-03-15 first appeared on
-FRED on 2017-03-22, after the Fed dropped them from H.15. Moody's subscribers had them
-daily, so they are kept as market data at *L* = 1, the same reasoning as EMBIG below;
-#11 should report whether its results change when that window is excluded.
+delays are taken to be FRED's, since the Fed's H.15 release
+(federalreserve.gov/releases/h15) posts each business day's rates on the next one; this
+was not checked against the H.15 archive. *L* = 1 stays. Moody's Baa and Aaa yields
+(BAA10Y, DBAA, DAAA) for 2016-10-07 to 2017-03-15 first appeared on FRED on 2017-03-22,
+after the Fed dropped them from H.15. Moody's subscribers had them daily, so they are
+kept as market data at *L* = 1, the same reasoning as EMBIG below. Nothing confirms the
+backfill matches what subscribers saw, so #11 should report whether its results change
+when that window is excluded.
 
 **ALFRED first releases.** NFCI and ICSA are revised, so they are read as first
 releases, stamped by the date each value was first published, plus one session because
 that date has no time of day. ALFRED began tracking NFCI in 2011; its whole earlier
 history shares that first publication date, so it enters at once on that date and
 nothing is usable before it. Treat NFCI results before mid-2011 as unavailable, not
-estimated (#14). The same holds for ICSA before its first vintage, 2009-06-04. `load` keeps
+estimated (#14). The same holds for ICSA before its first ALFRED vintage. Neither series covers
+2008, so #14 cannot compare them with other signals on that episode unless it
+deliberately uses a later vintage for the early history. `load` keeps
 one value per session, so that back history collapses to its latest observation; a
 feature with a 52-week window starts a year after the first vintage unless the signal
 reads the first releases with `alfred.fetch` and rebuilds the history itself.
