@@ -2,27 +2,29 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from macro.backtest.scoring import qlike
 from macro.data.calendar import nyse_sessions
 from macro.models import baselines
-from macro.models.target import forecast_grid
+from macro.models.target import forecast_grid, realized_variance
 
 SESSIONS = nyse_sessions("1996-01-02", "2003-12-31")
 
 
+OMEGA, ALPHA, BETA = 2e-6, 0.08, 0.9
+
+
 def simulated_returns(seed=0):
-    """GARCH(1,1) returns so the fits have something to find."""
+    """GARCH(1,1) returns, and each session's true variance for the next return."""
     rng = np.random.default_rng(seed)
-    omega, alpha, beta = 2e-6, 0.08, 0.9
-    var = omega / (1 - alpha - beta)
-    out = np.empty(len(SESSIONS))
-    for i in range(len(out)):
-        out[i] = np.sqrt(var) * rng.standard_normal()
-        var = omega + alpha * out[i] ** 2 + beta * var
-    return pd.Series(out, index=SESSIONS)
+    var = OMEGA / (1 - ALPHA - BETA)
+    returns, next_var = np.empty(len(SESSIONS)), np.empty(len(SESSIONS))
+    for i in range(len(SESSIONS)):
+        returns[i] = np.sqrt(var) * rng.standard_normal()
+        var = OMEGA + ALPHA * returns[i] ** 2 + BETA * var
+        next_var[i] = var
+    return pd.Series(returns, index=SESSIONS), pd.Series(next_var, index=SESSIONS)
 
 
-RETURNS = simulated_returns()
+RETURNS, NEXT_VARIANCE = simulated_returns()
 GRID = forecast_grid(RETURNS, 21)
 
 
@@ -62,7 +64,18 @@ def test_har_coefficients_use_only_targets_ending_by_the_refit():
     assert baselines.har(shocked, dates, 5)[t] == baselines.har(RETURNS, dates, 5)[t]
 
 
-def test_qlike_is_zero_for_a_perfect_forecast_and_penalizes_under_forecasts_more():
-    realized = pd.Series([0.04])
-    assert qlike(realized, realized) == 0
-    assert qlike(realized / 2, realized) > qlike(realized * 2, realized) > 0
+def test_garch_matches_the_true_h_step_variance():
+    persistence = ALPHA + BETA
+    long_run = OMEGA / (1 - persistence)
+    steps = np.arange(21)
+    expected = [
+        252 / 21 * np.sum(long_run + persistence**steps * (NEXT_VARIANCE[t] - long_run))
+        for t in GRID
+    ]
+    # Fitted parameters differ from the true ones; the forecast scale must not.
+    assert baselines.garch(RETURNS, GRID, 21).to_numpy() == pytest.approx(expected, rel=0.2)
+
+
+def test_har_forecasts_are_unbiased_in_level():
+    target = realized_variance(RETURNS, 21).loc[GRID]
+    assert baselines.har(RETURNS, GRID, 21).mean() / target.mean() == pytest.approx(1, abs=0.2)

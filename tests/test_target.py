@@ -30,6 +30,12 @@ def test_log_returns_are_indexed_by_the_session_they_end_on():
     assert returns.iloc[0] == pytest.approx(np.log(1.1))
 
 
+def test_missing_close_raises():
+    close = pd.Series([100.0, np.nan, 101.0], index=nyse_sessions("2010-01-04", "2010-01-06"))
+    with pytest.raises(ValueError, match="missing closes"):
+        log_returns(close)
+
+
 @pytest.mark.parametrize("h, last", [(5, "2017-11-30"), (21, "2017-10-31"), (63, "2017-09-29")])
 def test_grid_is_month_ends_whose_targets_end_by_dev_end(h, last):
     sessions = nyse_sessions("1999-06-01", "2018-06-29")

@@ -1,14 +1,14 @@
 """Baseline forecasts of the target, each made with data through the decision date only.
 
 Every function returns annualized variance forecasts indexed by the decision dates it is
-given. HAR and GARCH are refit once a year on an expanding window ending at the last
-session of the previous year, and their training targets end by that session.
+given. HAR and GARCH refit yearly on an expanding window (see ``schedule``).
 """
 
 import numpy as np
 import pandas as pd
 from arch import arch_model
 
+from macro.models.schedule import refit_schedule, training_end
 from macro.models.target import ANNUALIZE, realized_variance
 
 # Unchanged S&P 500 closes (5 since 1990) would make the one-day log variance -inf.
@@ -21,7 +21,11 @@ def trailing_rv(returns: pd.Series, dates: pd.DatetimeIndex) -> pd.Series:
 
 
 def vix(vix_close: pd.Series, dates: pd.DatetimeIndex) -> pd.Series:
-    """VIX squared as annualized variance; the same for every horizon."""
+    """VIX squared as annualized variance.
+
+    Raw 30-day implied variance, used unchanged for every horizon; it carries the
+    variance risk premium, so it runs above realized variance on average.
+    """
     return ((vix_close / 100) ** 2).loc[dates]
 
 
@@ -38,9 +42,8 @@ def har(returns: pd.Series, dates: pd.DatetimeIndex, h: int) -> pd.Series:
     features = har_features(returns)
     target = np.log(realized_variance(returns, h))
     forecasts = []
-    for refit, year_dates in _refit_schedule(returns, dates):
-        # Training targets cover t+1 ... t+h, so they end by the refit session.
-        train_end = returns.index[returns.index.get_loc(refit) - h]
+    for refit, year_dates in refit_schedule(returns.index, dates):
+        train_end = training_end(returns.index, refit, h)
         train = pd.concat([features, target.rename("y")], axis=1).loc[:train_end].dropna()
         x = np.column_stack([np.ones(len(train)), train[features.columns]])
         coef, *_ = np.linalg.lstsq(x, train["y"], rcond=None)
@@ -51,20 +54,21 @@ def har(returns: pd.Series, dates: pd.DatetimeIndex, h: int) -> pd.Series:
 
 
 def garch(returns: pd.Series, dates: pd.DatetimeIndex, h: int) -> pd.Series:
-    """GARCH(1,1) with constant mean and normal errors, summed over h steps."""
+    """GARCH(1,1) with constant mean and normal errors, summed over h steps.
+
+    Each step forecasts E[r**2] = variance + mean**2, matching the undemeaned target.
+    """
     scaled = returns * 100  # arch's optimizer is better conditioned on percent returns
     forecasts = []
-    for refit, year_dates in _refit_schedule(returns, dates):
-        params = arch_model(scaled.loc[:refit]).fit(disp="off").params
+    for refit, year_dates in refit_schedule(returns.index, dates):
+        fit = arch_model(scaled.loc[:refit]).fit(disp="off")
+        if fit.convergence_flag != 0:
+            raise RuntimeError(f"GARCH fit through {refit.date()} did not converge")
+        params = fit.params
         # Fixed parameters filter the conditional variance forward one return at a time,
         # so the forecast at t depends only on returns through t.
         fixed = arch_model(scaled.loc[: year_dates[-1]]).fix(params)
         variance = fixed.forecast(horizon=h, start=year_dates[0], reindex=False).variance
-        forecasts.append(variance.loc[year_dates].sum(axis=1) / 100**2 * ANNUALIZE / h)
+        second_moment = variance.loc[year_dates].sum(axis=1) + h * params["mu"] ** 2
+        forecasts.append(second_moment / 100**2 * ANNUALIZE / h)
     return pd.concat(forecasts)
-
-
-def _refit_schedule(returns: pd.Series, dates: pd.DatetimeIndex):
-    """Yield (last session of the previous year, that year's decision dates)."""
-    for year, year_dates in dates.to_series().groupby(dates.year):
-        yield returns.loc[: f"{year - 1}-12-31"].index[-1], pd.DatetimeIndex(year_dates)
