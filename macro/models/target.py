@@ -11,6 +11,7 @@ ANNUALIZE = 252
 
 def log_returns(close: pd.Series) -> pd.Series:
     """Close-to-close log returns, indexed by the session they end on."""
+    close = close.loc[close.first_valid_index() : close.last_valid_index()]
     if close.isna().any():
         raise ValueError("missing closes would turn into multi-session returns")
     return np.log(close).diff().dropna()

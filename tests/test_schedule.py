@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from macro.data.calendar import nyse_sessions
 from macro.models.schedule import refit_schedule, training_end
@@ -17,6 +18,15 @@ def test_each_year_refits_at_the_last_session_of_the_previous_year():
 
 
 def test_training_targets_end_by_the_refit_session():
-    refit = pd.Timestamp("2001-12-31")
-    end = training_end(SESSIONS, refit, 5)
-    assert SESSIONS[SESSIONS.get_loc(end) + 5] == refit
+    # Five sessions back from 2001-12-31 skips Christmas Day.
+    assert training_end(SESSIONS, pd.Timestamp("2001-12-31"), 5) == pd.Timestamp("2001-12-21")
+
+
+def test_training_end_refuses_a_refit_too_early_in_the_sessions():
+    with pytest.raises(ValueError, match="fewer than 5 sessions"):
+        training_end(SESSIONS, SESSIONS[2], 5)
+
+
+def test_refit_schedule_needs_a_session_before_the_first_year():
+    with pytest.raises(ValueError, match="no session before 2000"):
+        list(refit_schedule(SESSIONS, pd.DatetimeIndex(["2000-06-30"])))

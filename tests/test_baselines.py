@@ -8,7 +8,6 @@ from macro.models.target import forecast_grid, realized_variance
 
 SESSIONS = nyse_sessions("1996-01-02", "2003-12-31")
 
-
 OMEGA, ALPHA, BETA = 2e-6, 0.08, 0.9
 
 

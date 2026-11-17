@@ -30,10 +30,17 @@ def test_log_returns_are_indexed_by_the_session_they_end_on():
     assert returns.iloc[0] == pytest.approx(np.log(1.1))
 
 
-def test_missing_close_raises():
+def test_missing_close_inside_the_series_raises():
     close = pd.Series([100.0, np.nan, 101.0], index=nyse_sessions("2010-01-04", "2010-01-06"))
     with pytest.raises(ValueError, match="missing closes"):
         log_returns(close)
+
+
+def test_missing_closes_at_either_end_are_dropped():
+    close = pd.Series(
+        [np.nan, 100.0, 110.0, np.nan], index=nyse_sessions("2010-01-04", "2010-01-07")
+    )
+    assert list(log_returns(close).index) == [pd.Timestamp("2010-01-06")]
 
 
 @pytest.mark.parametrize("h, last", [(5, "2017-11-30"), (21, "2017-10-31"), (63, "2017-09-29")])
