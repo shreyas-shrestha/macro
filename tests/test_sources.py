@@ -95,6 +95,11 @@ def test_alfred_parse_treats_dot_as_missing():
     assert out.dtype == float and np.isnan(out.iloc[0])
 
 
+def test_alfred_parse_returns_floats_for_whole_numbers():
+    out = alfred.parse([{"date": "2011-05-21", "realtime_start": "2011-05-26", "value": "424000"}])
+    assert out.dtype == float
+
+
 def test_fred_requires_an_api_key(monkeypatch):
     monkeypatch.setattr(fred, "load_env", lambda: False)
     monkeypatch.delenv("FRED_API_KEY", raising=False)

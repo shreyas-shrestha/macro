@@ -39,6 +39,6 @@ def parse(rows: list[dict]) -> pd.Series:
     frame = pd.DataFrame(rows, columns=["date", "realtime_start", "value"])
     frame["date"] = pd.to_datetime(frame["date"])
     frame["realtime_start"] = pd.to_datetime(frame["realtime_start"])
-    frame["value"] = pd.to_numeric(frame["value"], errors="coerce")
+    frame["value"] = pd.to_numeric(frame["value"], errors="coerce").astype(float)
     frame = frame.sort_values(["realtime_start", "date"])
     return pd.Series(frame["value"].to_numpy(), index=pd.DatetimeIndex(frame["realtime_start"]))

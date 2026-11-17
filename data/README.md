@@ -34,9 +34,9 @@ NYSE sessions.
 | DGS10 | FRED | `DGS10` | 1990-01-02 | 1 | 3 | No | 10-year Treasury constant maturity |
 | T10Y2Y | FRED | `T10Y2Y` | 1990-01-02 | 1 | 3 | No | 10-year minus 2-year |
 | T10Y3M | FRED | `T10Y3M` | 1990-01-02 | 1 | 3 | No | 10-year minus 3-month |
-| CPFF | FRED | `CPFF` | 1997-01-02 | 1 | 3 | No | 3-month commercial paper minus fed funds |
-| NFCI | ALFRED | `NFCI` | 1990-01-02 | 1 | 10 | Yes | Weekly; see below |
-| ICSA | ALFRED | `ICSA` | 1990-01-02 | 1 | 10 | Yes | Weekly initial claims |
+| CPFF | FRED | `CPFF` | 1997-01-02 | 1 | 3 | No | 3-month commercial paper minus fed funds; 16 missing sessions in Nov 2008–Jan 2009, one gap of 9 |
+| NFCI | ALFRED | `NFCI` | 1990-01-02 | 1 | 10 | Yes | Weekly; first ALFRED vintage 2011-06-02 |
+| ICSA | ALFRED | `ICSA` | 1990-01-02 | 1 | 10 | Yes | Weekly initial claims; first ALFRED vintage 2009-06-04 |
 | EMBIG | BCRP | `PD04707XD` | 1998-01-02 | 2 | 3 | Not checked | Global; BCRP has nothing after 2017-01-09, so #17 uses the regional series |
 | EMBIG_LATAM | BCRP | `PD04708XD` | 1998-01-02 | 2 | 3 | Not checked | Latin America |
 | EMBIG_PERU | BCRP | `PD04709XD` | 1998-01-02 | 2 | 3 | Not checked | |
@@ -61,12 +61,20 @@ session later. Counting on the Fed calendar matters around Columbus Day and Vete
 Day, when the NYSE is open but FRED does not post: Friday 2017-10-06's value is posted
 Tuesday 10-10 and first used Wednesday 10-11.
 
+Checked against ALFRED's first-release dates for July 2014–2017: FRED posted 97.5% of
+DGS10 values on the stamped posting day and the rest 1–3 business days later. Those
+delays are FRED's; the Fed publishes H.15 on the posting day, so *L* = 1 stands. Moody's
+Baa and Aaa yields (BAA10Y, DBAA, DAAA) for 2016-10-07 to 2017-03-15 first appeared on
+FRED on 2017-03-22, after the Fed dropped them from H.15. Moody's subscribers had them
+daily, so they are kept as market data at *L* = 1, the same reasoning as EMBIG below;
+#11 should report whether its results change when that window is excluded.
+
 **ALFRED first releases.** NFCI and ICSA are revised, so they are read as first
 releases, stamped by the date each value was first published, plus one session because
 that date has no time of day. ALFRED began tracking NFCI in 2011; its whole earlier
 history shares that first publication date, so it enters at once on that date and
 nothing is usable before it. Treat NFCI results before mid-2011 as unavailable, not
-estimated (#14). The same holds for ICSA before its first ALFRED vintage. `load` keeps
+estimated (#14). The same holds for ICSA before its first vintage, 2009-06-04. `load` keeps
 one value per session, so that back history collapses to its latest observation; a
 feature with a 52-week window starts a year after the first vintage unless the signal
 reads the first releases with `alfred.fetch` and rebuilds the history itself.
