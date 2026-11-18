@@ -73,7 +73,7 @@ models on identical rows. Blocks: claims (2000–2017), ANFCI and claims + ANFCI
 month-ends whose target windows overlap (0, 1, 3, 6, 12 for those horizons): #10's "lag
 *h*" is in sessions and the grid is monthly.
 
-## Pre-registered threshold (to be posted on #14 before any run)
+## Pre-registered threshold (posted on #14 before any run)
 
 - **Primary:** claims block at *h* = 21: at least 5% lower QLIKE than the baseline with
   Clark–West *p* < 0.10.
@@ -83,7 +83,45 @@ month-ends whose target windows overlap (0, 1, 3, 6, 12 for those horizons): #10
 
 ## Scorecard
 
-Pending: not run until the threshold is posted.
+Development period only. Gain is the QLIKE reduction against the baseline on the same
+rows (positive is better); *p* is one-sided Clark–West.
+
+| Block | *h* | *n* | QLIKE base | QLIKE signal | Gain | R²_OOS | CW *p* |
+|---|---|---|---|---|---|---|---|
+| claims | 5 | 215 | 0.2623 | 0.2646 | −0.9% | −0.009 | 0.97 |
+| claims | **21** | 214 | 0.2465 | 0.2467 | **−0.1%** | 0.003 | **0.16** |
+| claims | **63** | 213 | 0.2893 | 0.2871 | **+0.8%** | −0.006 | **0.29** |
+| claims | 126 | 210 | 0.3399 | 0.3259 | +4.1% | 0.008 | 0.21 |
+| claims | 252 | 203 | 0.3595 | 0.3477 | +3.3% | 0.005 | 0.18 |
+| anfci | 5 | 59 | 0.2768 | 0.2921 | −5.6% | −0.087 | 0.72 |
+| anfci | 21 | 58 | 0.2967 | 0.4556 | −53.6% | −0.255 | 0.78 |
+| anfci | 63 | 57 | 0.1927 | 0.2483 | −28.8% | −0.180 | 0.90 |
+| anfci | 126 | 54 | 0.1713 | 0.1950 | −13.8% | −0.123 | 0.90 |
+| anfci | 252 | 47 | 0.2408 | 0.1999 | +17.0% | 0.204 | 0.03 |
+| claims + anfci | 5 | 59 | 0.2768 | 0.4018 | −45.2% | −0.306 | 0.91 |
+| claims + anfci | 21 | 58 | 0.2967 | 0.5050 | −70.2% | −0.428 | 0.81 |
+| claims + anfci | 63 | 57 | 0.1927 | 0.2704 | −40.3% | −0.300 | 0.80 |
+| claims + anfci | 126 | 54 | 0.1713 | 0.1955 | −14.1% | −0.134 | 0.80 |
+| claims + anfci | 252 | 47 | 0.2408 | 0.1404 | +41.7% | 0.327 | 0.04 |
+
+**Label: `not-advancing`.** Both pre-registered tests fail: the primary misses the 5% bar
+with a gain of −0.1%, and the secondary reaches only +0.8% with *p* = 0.29.
+
+## Reading
+
+- **The claims block's gains all come from 2008.** Summed QLIKE improvement by year:
+  2008 contributes 0.52, 2.24, 3.74 and 2.99 at *h* = 21, 63, 126 and 252. Without 2008
+  the block is worse than the baseline at every horizon (−0.56, −1.77, −0.81, −0.59).
+  The +3–4% at 126 and 252 days is one episode, not a horizon effect, and the
+  pre-2009 claims values are the latest vintage, not first releases.
+- **The long-horizon ANFCI result should not be believed.** 47 month-ends with target
+  windows a year long cover about four non-overlapping years (2013–2017), Newey–West
+  with 12 lags on 47 points is unreliable, and the same block loses 14–54% at every
+  shorter horizon. The short-horizon losses come from fits on 82 to 329 training
+  sessions, mostly 2011–2012.
+- What remains for the claims block is a weak hint that labor data adds information
+  in recessions only. The development period holds one recession with real-time claims
+  timing, so this cannot be tested here.
 
 ## Not done yet
 
