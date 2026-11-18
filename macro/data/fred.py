@@ -44,7 +44,7 @@ def fetch_claims(series_id: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.S
     observed = Fred(api_key=api_key()).get_series(
         series_id, observation_start=start, observation_end=end, **vintage
     )
-    if (observed.index.dayofweek != 5).any():
+    if (observed.index.day_of_week != 5).any():
         raise ValueError(f"{series_id}: expected weeks ending Saturday")
     thursdays = observed.index + pd.Timedelta(days=5)
     return pd.Series(observed.astype(float).to_numpy(), index=thursdays).loc[start:end]
