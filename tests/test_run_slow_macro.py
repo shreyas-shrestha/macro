@@ -1,4 +1,5 @@
 import importlib.util
+import math
 from pathlib import Path
 
 import numpy as np
@@ -7,6 +8,7 @@ import pytest
 
 from macro.data.calendar import INDEX_NAME, nyse_sessions
 from macro.features import slow_macro
+from macro.models.schedule import training_end
 from macro.models.target import realized_variance
 
 PATH = Path(__file__).resolve().parents[1] / "experiments" / "run_slow_macro.py"
@@ -97,6 +99,76 @@ def test_forecast_start_drops_earlier_dates():
 @pytest.mark.parametrize("h, lag", [(5, 0), (21, 1), (63, 3), (252, 12)])
 def test_newey_west_lag_counts_overlapping_month_ends(h, lag):
     assert run.overlap_lag(SESSIONS, run.forecast_grid(RETURNS, h), h) == lag
+
+
+@pytest.mark.parametrize("step, lag", [(5, 0), (4, 1)])
+def test_newey_west_lag_counts_only_windows_that_share_a_session(step, lag):
+    # Windows t+1 ... t+5 and t+6 ... t+10 do not overlap; t+5 ... t+9 does.
+    assert run.overlap_lag(SESSIONS, SESSIONS[[0, step, 2 * step]], 5) == lag
+
+
+def test_score_by_hand():
+    # Log target 0, baseline log forecast 1 and signal log forecast s make the
+    # Clark–West series 2 * (1 - s) = d.
+    d = np.array([1.0, 3.0, 2.0, 5.0, 4.0, 0.0])
+    signal_log = 1 - d / 2
+    dates = SESSIONS[::3][:6]  # 3 sessions apart, so with h = 5 the Newey–West lag is 1
+    forecasts = pd.DataFrame(
+        {
+            "target": 1.0,
+            "baseline": np.e,
+            "baseline_log": 1.0,
+            "signal": np.exp(signal_log),
+            "signal_log": signal_log,
+        },
+        index=dates,
+    )
+    scores = run.score(forecasts, SESSIONS, 5)
+    u = d - d.mean()
+    bartlett = (u @ u + 2 * 0.5 * (u[1:] @ u[:-1])) / len(d)  # weight 1 - 1/(lag + 1)
+    t = d.mean() / math.sqrt(bartlett / len(d))
+    assert scores["nw_lag"] == 1
+    assert scores["cw_t"] == pytest.approx(t)
+    assert scores["cw_p"] == pytest.approx(0.5 * math.erfc(t / math.sqrt(2)))
+    assert scores["r2_oos"] == pytest.approx(1 - np.sum(signal_log**2) / len(d))
+    # QLIKE with realized variance 1 and forecast exp(f) is exp(-f) + f - 1.
+    qlike_base, qlike_signal = np.e**-1, np.mean(np.exp(-signal_log) + signal_log - 1)
+    assert scores["qlike_baseline"] == pytest.approx(qlike_base)
+    assert scores["qlike_gain"] == pytest.approx(1 - qlike_signal / qlike_base)
+
+
+def ridge_inputs():
+    x = NOISE[["a"]]
+    y = 5 + 2 * x["a"] + 0.3 * NOISE["b"]
+    dates = SESSIONS[(SESSIONS.year == 2001)][::21]
+    train_end = training_end(SESSIONS, pd.Timestamp("2000-12-29"), 5)
+    return x, y, dates, train_end
+
+
+def test_ridge_without_penalty_is_ols_with_a_lognormal_bias_correction():
+    x, y, dates, train_end = ridge_inputs()
+    out = run.ridge(x, y, SESSIONS, dates, 5, alpha=0.0)
+    design = np.column_stack([np.ones(len(x.loc[:train_end])), x.loc[:train_end, "a"]])
+    coef, *_ = np.linalg.lstsq(design, y.loc[:train_end], rcond=None)
+    resid_var = np.var(y.loc[:train_end] - design @ coef, ddof=2)
+    log = coef[0] + coef[1] * x.loc[dates, "a"]
+    assert out["log"].to_numpy() == pytest.approx(log.to_numpy())
+    assert out["variance"].to_numpy() == pytest.approx(np.exp(log + resid_var / 2).to_numpy())
+
+
+def test_ridge_does_not_penalize_the_intercept():
+    x, y, dates, train_end = ridge_inputs()
+    out = run.ridge(x, y, SESSIONS, dates, 5, alpha=1e12)
+    assert out["log"].to_numpy() == pytest.approx(y.loc[:train_end].mean())
+
+
+def test_a_missing_signal_value_drops_that_date_for_both_models():
+    signal = NOISE.copy()
+    signal.loc["2002-06-28"] = np.nan
+    forecasts = run.evaluate(RETURNS, VIX, signal, 21, alpha=1.0)
+    full = run.evaluate(RETURNS, VIX, NOISE, 21, alpha=1.0)
+    assert full.index.difference(forecasts.index).equals(pd.DatetimeIndex(["2002-06-28"]))
+    assert forecasts[["baseline", "signal"]].notna().all().all()
 
 
 def test_main_writes_one_file_per_horizon(tmp_path, monkeypatch):
