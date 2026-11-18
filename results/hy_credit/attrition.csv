@@ -1,0 +1,17 @@
+stage,rows,master_unique,master_consistent,master_none,master_ambiguous,excluded_not_corp,excluded_convertible,excluded_not_plain_fixed,excluded_rule_144a,unknown_maturity,matured_or_nonpositive,outside_1_30y,no_yield,no_treasury,outside_5_3500bp,link_linked,link_conflict,link_unmatched,n_issuers,hy,ig,unrated,median_rating_age_days,days_with_hy
+raw_records,106860029,,,,,,,,,,,,,,,,,,,,,,,
+after_lifecycle,100744187,,,,,,,,,,,,,,,,,,,,,,,
+after_condition_filters,99839673,,,,,,,,,,,,,,,,,,,,,,,
+after_disseminated_only,99764187,,,,,,,,,,,,,,,,,,,,,,,
+after_sanity_filters,99763741,,,,,,,,,,,,,,,,,,,,,,,
+bond_days,14967163,,,,,,,,,,,,,,,,,,,,,,,
+master_join,14967163,13761682.0,1186432.0,12050.0,6999.0,,,,,,,,,,,,,,,,,,,
+after_master_unique,14948114,,,,,,,,,,,,,,,,,,,,,,,
+after_bond_universe,14768761,,,,,411.0,25661.0,153165.0,116.0,,,,,,,,,,,,,,,
+after_maturity_screen,13563803,,,,,,,,,1113.0,22957.0,1180888.0,,,,,,,,,,,,
+after_spread_screen,12354156,,,,,,,,,,,,1041030.0,13275.0,155342.0,,,,,,,,,
+issuer_link,12354156,,,,,,,,,,,,,,,7491671.0,3003219.0,1859266.0,,,,,,
+after_issuer_link,7491671,,,,,,,,,,,,,,,,,,2120.0,,,,,
+ratings,7491671,,,,,,,,,,,,,,,,,,,1337226.0,5128879.0,1025566.0,15.0,
+issuer_days,1680109,,,,,,,,,,,,,,,,,,1707.0,,,,,
+daily,2852,,,,,,,,,,,,,,,,,,,,,,,2852.0

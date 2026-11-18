@@ -102,7 +102,7 @@ Full output: `results/hy_credit/sample_validation.json` (aggregates only).
 
 ## Development results (2006-01-09 to 2017-12-29 pulled; usable through 2017-06-01)
 
-Outputs: `results/hy_credit/` (`dev_report.json`, `qa_report.json`, `attrition.csv`, `attrition_by_month.csv`, `daily_coverage.csv`, `monthly_summary.csv`, three plots). All are aggregates; no bond-level rows.
+Outputs: `results/hy_credit/` (`dev_report.json`, `qa_report.json`, `attrition.csv`, `attrition_by_month.csv`, three plots). All are aggregates; no bond-level rows. The runner also writes the daily and monthly signal series (`daily_coverage.csv`, `monthly_summary.csv`, `residual/residual_daily.csv`, `residual/sector_check_monthly_p90.csv`, `residual_sector/sector_premium_daily.csv`); these are licensed-derived, so they are git-ignored and stay local.
 
 | Stage | Rows | Share |
 |---|---|---|

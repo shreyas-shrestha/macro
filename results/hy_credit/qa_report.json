@@ -1,0 +1,47 @@
+{
+ "failures": [],
+ "summary": {
+  "raw_trace_rows": 106860029,
+  "cleaned_trades": 99763741,
+  "bond_days": 14967163,
+  "bond_days_with_valid_spread": 12354156,
+  "linked_bond_days": 7491671,
+  "rated_bond_days": 6466105,
+  "issuer_days_rated": 1680109,
+  "hy_issuer_days": 655358,
+  "ig_issuer_days": 1024751,
+  "first_usable_date": "2006-01-09",
+  "last_usable_date": "2017-06-01"
+ },
+ "denominators": {
+  "master_usable_share_of_bond_days": 0.9987,
+  "linked_share_of_valid_spread_bond_days": 0.6064,
+  "rated_share_of_linked_bond_days": 0.8631,
+  "note": "issuer-days are formed from rated bond-days only; HY/IG aggregates use rated issuers only, unrated issuers are counted in n_unrated_issuers"
+ },
+ "days_missing_hy_within_usable_range": 0,
+ "longest_missing_hy_run_days": 0,
+ "latest_report_date_by_chunk_max": "2017-12-29 00:00:00",
+ "daily_counts": {
+  "n_hy_issuers": {
+   "min": 11,
+   "median": 235.0,
+   "max": 321
+  },
+  "n_ig_issuers": {
+   "min": 31,
+   "median": 364.0,
+   "max": 481
+  },
+  "n_unrated_issuers": {
+   "min": 3,
+   "median": 82.0,
+   "max": 112
+  },
+  "n_bonds": {
+   "min": 69,
+   "median": 2409.0,
+   "max": 3853
+  }
+ }
+}

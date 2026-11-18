@@ -7,3 +7,10 @@ __pycache__/
 data/cache/
 .pytest_cache/
 .ruff_cache/
+
+# Licensed WRDS-derived signal series from #24: keep local, commit summaries only
+results/hy_credit/daily_coverage.csv
+results/hy_credit/monthly_summary.csv
+results/hy_credit/residual/residual_daily.csv
+results/hy_credit/residual/sector_check_monthly_p90.csv
+results/hy_credit/residual_sector/sector_premium_daily.csv
