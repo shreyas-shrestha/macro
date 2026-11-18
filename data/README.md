@@ -36,6 +36,7 @@ NYSE sessions.
 | T10Y3M | FRED | `T10Y3M` | 1990-01-02 | 1 | 3 | No | 10-year minus 3-month |
 | CPFF | FRED | `CPFF` | 1997-01-02 | 1 | 3 | No | 3-month commercial paper minus fed funds; 16 missing sessions in Nov 2008–Jan 2009, one gap of 9 |
 | NFCI | ALFRED | `NFCI` | 1990-01-02 | 1 | 10 | Yes | Weekly; first ALFRED vintage 2011-06-02 |
+| ANFCI | ALFRED | `ANFCI` | 1990-01-02 | 1 | 10 | Yes | NFCI adjusted for economic conditions; first ALFRED vintage 2011-06-02 |
 | ICSA | ALFRED | `ICSA` | 1990-01-02 | 1 | 10 | Yes | Weekly initial claims; first ALFRED vintage 2009-06-04 |
 | EMBIG | BCRP | `PD04707XD` | 1998-01-02 | 2 | 3 | Not checked | Global; BCRP has nothing after 2017-01-09, so #17 uses the regional series |
 | EMBIG_LATAM | BCRP | `PD04708XD` | 1998-01-02 | 2 | 3 | Not checked | Latin America |
@@ -72,17 +73,21 @@ kept as market data at *L* = 1, the same reasoning as EMBIG below. Nothing confi
 backfill matches what subscribers saw, so #11 should report whether its results change
 when that window is excluded.
 
-**ALFRED first releases.** NFCI and ICSA are revised, so they are read as first
+**ALFRED first releases.** NFCI, ANFCI and ICSA are revised, so they are read as first
 releases, stamped by the date each value was first published, plus one session because
-that date has no time of day. ALFRED began tracking NFCI in 2011; its whole earlier
-history shares that first publication date, so it enters at once on that date and
-nothing is usable before it. Treat NFCI results before mid-2011 as unavailable, not
-estimated (#14). The same holds for ICSA before its first ALFRED vintage. Neither series covers
-2008, so #14 cannot compare them with other signals on that episode unless it
-deliberately uses a later vintage for the early history. `load` keeps
-one value per session, so that back history collapses to its latest observation; a
-feature with a 52-week window starts a year after the first vintage unless the signal
-reads the first releases with `alfred.fetch` and rebuilds the history itself.
+that date has no time of day. The Chicago Fed releases NFCI and ANFCI at 08:30 ET on
+Wednesday (Thursday in holiday weeks) for the week through the previous Friday, and
+ALFRED's vintage dates fall on those days (295 Wednesdays and 49 Thursdays, 2011–2017).
+*L* = 0 would therefore be accurate; *L* = 1 is kept as a one-session margin. ALFRED
+began tracking NFCI and ANFCI in 2011; their whole earlier history shares that first
+publication date, so it enters at once on that date and nothing is usable before it.
+Treat their results before mid-2011 as unavailable, not estimated (#14). The same holds
+for ICSA before its first ALFRED vintage. None of the three covers 2008, so #14 cannot
+compare them with other signals on that episode unless it deliberately uses a later
+vintage for the early history. `load` keeps one value per session, so that back history
+collapses to its latest observation; a feature with a 52-week window starts a year after
+the first vintage unless the signal reads the first releases with `alfred.fetch` and
+rebuilds the history itself.
 
 **EMBIG.** J.P. Morgan spreads redistributed by BCRP. They are market data, known to
 J.P. Morgan subscribers after the US close on *s*, so *L* = 1 is the true lag and the

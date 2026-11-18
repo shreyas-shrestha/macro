@@ -33,6 +33,7 @@ SERIES = {
     "T10Y3M": SeriesSpec("fred", "T10Y3M", pd.Timestamp("1990-01-02"), 1, 3),
     "CPFF": SeriesSpec("fred", "CPFF", pd.Timestamp("1997-01-02"), 1, 3),
     "NFCI": SeriesSpec("alfred", "NFCI", pd.Timestamp("1990-01-02"), 1, 10),
+    "ANFCI": SeriesSpec("alfred", "ANFCI", pd.Timestamp("1990-01-02"), 1, 10),
     "ICSA": SeriesSpec("alfred", "ICSA", pd.Timestamp("1990-01-02"), 1, 10),
     "EMBIG": SeriesSpec("bcrp", "PD04707XD", pd.Timestamp("1998-01-02"), 2, 3),
     "EMBIG_LATAM": SeriesSpec("bcrp", "PD04708XD", pd.Timestamp("1998-01-02"), 2, 3),
