@@ -139,7 +139,6 @@ def test_financial_conditions_use_first_releases_in_publication_order():
     out = FinancialConditions().run("2017-12-31")
     assert out.index[0] == pd.Timestamp("2011-06-03")
     assert out.loc["2011-06-03", "anfci_level"] == 0.0
-    # Two weeks released together on 2012-11-07: the later week is used from 11-08.
     later = FRIDAYS.get_loc(pd.Timestamp("2012-11-02"))
     assert out.loc["2012-11-07", "anfci_level"] == pytest.approx((later - 2) / 100)
     assert out.loc["2012-11-08", "anfci_level"] == pytest.approx(later / 100)

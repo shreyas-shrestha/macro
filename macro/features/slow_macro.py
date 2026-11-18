@@ -1,26 +1,17 @@
 """Slow macro features: weekly jobless claims and financial conditions (issue #14).
 
-Both inputs are weekly. Features are computed on the weekly values, each indexed by the
-date it was released (``macro.data.series.raw``), and then put on NYSE sessions with
-the input's own lag and carry (``series.on_sessions``). A weekly feature uses only its
-own release and earlier ones, so its value on a session is what was knowable then.
+Computed on weekly values indexed by release date (``series.raw``), then put on NYSE
+sessions with the input's lag and carry (``series.on_sessions``). Sources and timing,
+including which values are first releases: data/README.md.
 
-Claims (ICNSA, not seasonally adjusted, stamped by release Thursday):
-    claims_yoy     log of the 4-week average over the same average 52 weeks earlier
-    claims_vs_low  log of the 4-week average over its minimum in the prior 52 weeks
+    claims_yoy        log(4-week average of ICNSA / the same average 52 weeks earlier)
+    claims_vs_low     log(4-week average / its minimum over the prior 52 weeks)
+    anfci_level       ANFCI first release
+    anfci_change_13w  that value minus the first release 13 releases earlier
 
-The year-over-year ratio removes seasonality using past data only. Weeks are matched by
-date (364 days back), not by position, so a missing week cannot shift the comparison.
-
-Financial conditions (ANFCI first releases from ALFRED, real time from 2011-06-02):
-    anfci_level       ANFCI as first released
-    anfci_change_13w  that value minus the first release 13 weeks earlier
-
-The Chicago Fed re-estimates the whole ANFCI history every week, so the 13-week change
-mixes two vintages; both values were public when the later one was released. ALFRED
-first releases are indexed by publication date, not by week, so the change counts 13
-releases back. ANFCI had no missing weeks 2011–2017, and the one week released late (the
-week of 2012-10-26, published with the next on 2012-11-07) keeps its order.
+The year-ago week is matched by date (364 days back), not by position. ANFCI first
+releases are indexed by publication date, so its change counts releases; ANFCI has no
+missing weeks 2011–2017.
 """
 
 import numpy as np

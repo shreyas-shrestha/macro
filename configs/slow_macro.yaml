@@ -3,7 +3,9 @@
 # (log trailing RV, log VIX). Fixed before any scoring; see research/slow_macro.md.
 name: slow_macro
 horizons: [5, 21, 63, 126, 252]
-# Negligible next to a few thousand standardized training rows; not tuned.
+# Not tuned. On standardized features it shrinks slopes by roughly alpha / n: under 0.05%
+# for the claims block (2,300 to 6,900 training rows), about 1% for the first ANFCI fit at
+# h = 252 (82 heavily overlapping rows).
 ridge_alpha: 1.0
 blocks:
   claims:
