@@ -39,7 +39,7 @@ NYSE sessions.
 | NFCI | ALFRED | `NFCI` | 1990-01-02 | 1 | 10 | Yes | Weekly; first ALFRED vintage 2011-06-02 |
 | ANFCI | ALFRED | `ANFCI` | 1990-01-02 | 1 | 10 | Yes | NFCI adjusted for economic conditions; first ALFRED vintage 2011-06-02 |
 | ICSA | ALFRED | `ICSA` | 1990-01-02 | 1 | 10 | Yes | Weekly initial claims; first ALFRED vintage 2009-06-04 |
-| ICNSA | FRED | `ICNSA` | 1988-01-02 | 1 | 10 | Yes | Weekly initial claims, not seasonally adjusted; stamped by release day, see below |
+| ICNSA | FRED, ALFRED | `ICNSA` | 1988-01-02 | 1 | 10 | Yes | Weekly initial claims, not seasonally adjusted; first releases from 2009-05-30; stamped by release day, see below |
 | EMBIG | BCRP | `PD04707XD` | 1998-01-02 | 2 | 3 | Not checked | Global; BCRP has nothing after 2017-01-09, so #17 uses the regional series |
 | EMBIG_LATAM | BCRP | `PD04708XD` | 1998-01-02 | 2 | 3 | Not checked | Latin America |
 | EMBIG_PERU | BCRP | `PD04709XD` | 1998-01-02 | 2 | 3 | Not checked | |
@@ -85,21 +85,28 @@ first vintages (NFCI and ANFCI 2011-05-25, ICSA 2009-05-28) carry the whole earl
 history, but its initial-release query (`output_type=4`) omits every observation in a
 series' first vintage. So `alfred.fetch` starts with the second vintage (the dates in the
 table), nothing is usable before it, and none of the three covers 2008. A feature with a
-52-week window starts a year after that date.
+52-week window starts a year after that date. One ANFCI week, ending 2012-10-26,
+was released late, together with the next week on 2012-11-07.
 
 **Weekly claims (ICNSA).** The Department of Labor releases initial claims for the week
 ending Saturday *s* at 08:30 ET on Thursday *s* + 5, or on Wednesday when that Thursday
-is a holiday (Thanksgiving every year; also Veterans Day 2010, July 4 2013, Christmas 2014 and
-New Year 2015). FRED dates the week by *s*, so the posting-day rule would stamp it Monday
-*s* + 2, three days before release. ICNSA is stamped *s* + 5 instead, with *L* = 1: first
-usable on Friday, or on Monday when Thursday is an NYSE holiday. Checked against ALFRED
-for every first release from 2009-06-04 to 2017-12-28 (448 weeks): 435 were released on
-*s* + 5 and 13 on *s* + 4, none later. ALFRED has no ICNSA vintages before 2009-05-28,
-so the rule is not checked earlier. The fetcher reads the vintage as of the end date
-(2017-12-31 for development), not the latest, so no revision published later is used.
-Revisions are small: first releases differ from that vintage by a median 0.5% (90th
-percentile 1.4%, maximum 3.8%) over 2010–2017. The seasonally adjusted ICSA is also
-revised whenever its seasonal factors are re-estimated, which is why #14 uses ICNSA.
+is a holiday (Thanksgiving every year; also Veterans Day 2010, July 4 2013, Christmas 2014
+and New Year 2015). FRED dates the week by *s*, so the posting-day rule would stamp it
+Monday *s* + 2, three days before release. ICNSA has its own source, `claims`: each week
+is stamped *s* + 5 with *L* = 1. *L* = 0 would be accurate for a Thursday release; *L* = 1
+is a one-session margin, so a normal week is first used on Friday and a week released on
+Wednesday is used two sessions late (the Monday after Thanksgiving, for example).
+
+Weeks from 2009-05-30 on take their ALFRED first release, so they are point in time.
+All 448 first releases from 2009-06-04 to 2017-12-28 came on or before the stamp (435 on
+*s* + 5, 13 on *s* + 4), and the fetcher refuses any that did not. Earlier weeks have no
+first release (ALFRED's first ICNSA vintage, 2009-05-28, is dropped as described above)
+and take the vintage published on 2017-12-31, which includes revisions made after each
+week's release. This is a known deviation: first releases differ from that vintage by a
+median 0.5% (90th percentile 1.4%, maximum 3.8% of the first release) over 2010–2017,
+and features with a year-long window read some pre-2009 weeks until mid-2010. ICNSA is
+used rather than the seasonally adjusted ICSA because ICSA is also revised whenever its
+seasonal factors are re-estimated.
 
 **EMBIG.** J.P. Morgan spreads redistributed by BCRP. They are market data, known to
 J.P. Morgan subscribers after the US close on *s*, so *L* = 1 is the true lag and the

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 from macro.config import DEV_END
-from macro.data import alfred, bcrp, fred, yahoo
+from macro.data import alfred, bcrp, claims, fred, yahoo
 from macro.data.cache import cached
 from macro.data.calendar import INDEX_NAME, nyse_sessions
 from macro.data.pit import align
@@ -35,7 +35,7 @@ SERIES = {
     "NFCI": SeriesSpec("alfred", "NFCI", pd.Timestamp("1990-01-02"), 1, 10),
     "ANFCI": SeriesSpec("alfred", "ANFCI", pd.Timestamp("1990-01-02"), 1, 10),
     "ICSA": SeriesSpec("alfred", "ICSA", pd.Timestamp("1990-01-02"), 1, 10),
-    "ICNSA": SeriesSpec("fred_claims", "ICNSA", pd.Timestamp("1988-01-02"), 1, 10),
+    "ICNSA": SeriesSpec("claims", "ICNSA", pd.Timestamp("1988-01-02"), 1, 10),
     "EMBIG": SeriesSpec("bcrp", "PD04707XD", pd.Timestamp("1998-01-02"), 2, 3),
     "EMBIG_LATAM": SeriesSpec("bcrp", "PD04708XD", pd.Timestamp("1998-01-02"), 2, 3),
     "EMBIG_PERU": SeriesSpec("bcrp", "PD04709XD", pd.Timestamp("1998-01-02"), 2, 3),
@@ -53,7 +53,7 @@ SERIES = {
 FETCHERS = {
     "yahoo": yahoo.fetch,
     "fred": fred.fetch,
-    "fred_claims": fred.fetch_claims,
+    "claims": claims.fetch,
     "alfred": alfred.fetch,
     "bcrp": bcrp.fetch,
 }

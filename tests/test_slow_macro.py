@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from macro.data import cache, fred, series
+from macro.data import alfred, cache, claims, series
 from macro.features.slow_macro import (
     Claims,
     FinancialConditions,
@@ -17,6 +17,15 @@ from macro.features.testing import assert_no_lookahead
 SATURDAYS = pd.date_range("1988-01-02", "2017-12-30", freq="W-SAT")
 ICNSA = pd.Series(300_000 + 100.0 * np.arange(len(SATURDAYS)), index=SATURDAYS)
 ICNSA += 50_000 * np.sin(2 * np.pi * SATURDAYS.day_of_year / 365.25)
+# ALFRED first releases from the week ending 2009-05-30, 1% below the vintage, each
+# released on Thursday s + 5.
+FIRST_WEEKS = SATURDAYS[SATURDAYS >= "2009-05-30"]
+FIRST = 0.99 * ICNSA.loc[FIRST_WEEKS]
+FIRST_ROWS = [
+    {"date": f"{d:%Y-%m-%d}", "realtime_start": f"{d + pd.Timedelta(days=5):%Y-%m-%d}", "value": v}
+    for d, v in FIRST.items()
+]
+SPLICED = FIRST.combine_first(ICNSA)
 
 # ANFCI first releases: the week ending Friday f is released the next Thursday f + 6,
 # except that the weeks of 2012-10-26 and 2012-11-02 were both released on 2012-11-07.
@@ -42,12 +51,13 @@ def synthetic_sources(tmp_path, monkeypatch):
     monkeypatch.setattr(socket.socket, "connect", no_network)
     monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
     monkeypatch.setenv("FRED_API_KEY", "test")
-    monkeypatch.setattr(fred, "Fred", FakeFred)
+    monkeypatch.setattr(claims, "Fred", FakeFred)
+    monkeypatch.setattr(alfred, "first_releases", lambda sid, end: alfred.table(FIRST_ROWS))
     monkeypatch.setitem(series.FETCHERS, "alfred", lambda sid, start, end: ANFCI.loc[start:end])
 
 
 def four_week_average(week_end):
-    return ICNSA.loc[week_end - pd.Timedelta(weeks=3) : week_end].mean()
+    return SPLICED.loc[week_end - pd.Timedelta(weeks=3) : week_end].mean()
 
 
 def test_claims_no_lookahead():
@@ -86,6 +96,19 @@ def test_claims_on_sessions_follow_the_release_thursday():
     # Thanksgiving: week ending 11-18 is stamped Thursday 11-23 and first used Monday 11-27.
     assert out.loc["2017-11-24", "claims_yoy"] == out.loc["2017-11-17", "claims_yoy"]
     assert out.loc["2017-11-27", "claims_yoy"] != out.loc["2017-11-24", "claims_yoy"]
+
+
+def test_claims_read_first_releases_from_mid_2009_and_the_vintage_before():
+    weekly = series.raw("ICNSA")
+    thursday = pd.Timedelta(days=5)
+    assert weekly[pd.Timestamp("2009-05-23") + thursday] == ICNSA["2009-05-23"]
+    assert weekly[pd.Timestamp("2009-05-30") + thursday] == FIRST["2009-05-30"]
+    # The year-ago average of the week ending 2009-12-05 is all vintage values.
+    out = Claims().run("2017-12-31")
+    week = pd.Timestamp("2009-12-05")
+    expected = np.log(four_week_average(week) / four_week_average(week - pd.Timedelta(weeks=52)))
+    assert out.loc["2009-12-11", "claims_yoy"] == pytest.approx(expected)
+    assert four_week_average(week) == pytest.approx(FIRST.loc[:week].iloc[-4:].mean())
 
 
 def test_claims_year_ago_is_52_weeks_back_across_a_53_week_year():

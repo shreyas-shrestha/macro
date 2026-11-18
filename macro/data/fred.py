@@ -1,4 +1,4 @@
-"""Series from FRED: daily ones stamped by the day FRED posts them, weekly claims by release day."""
+"""Daily series from FRED, stamped by the day FRED posts them."""
 
 import os
 
@@ -30,24 +30,6 @@ def fetch(series_id: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
         return pd.Series(dtype=float, index=pd.DatetimeIndex([]))
     posted = pd.Series(observed.astype(float).to_numpy(), index=posting_days(observed.index))
     return posted.loc[start:end]
-
-
-def fetch_claims(series_id: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
-    """Weekly claims as published by ``end``, each stamped by its release day.
-
-    The Department of Labor releases the week ending Saturday s on Thursday s + 5 days,
-    or the Wednesday before when that Thursday is a holiday. Values released after
-    ``end`` are dropped. Reading the vintage at ``end`` instead of the latest one keeps
-    revisions published after ``end`` out.
-    """
-    vintage = {"realtime_start": end.strftime("%Y-%m-%d"), "realtime_end": end.strftime("%Y-%m-%d")}
-    observed = Fred(api_key=api_key()).get_series(
-        series_id, observation_start=start, observation_end=end, **vintage
-    )
-    if (observed.index.day_of_week != 5).any():
-        raise ValueError(f"{series_id}: expected weeks ending Saturday")
-    thursdays = observed.index + pd.Timedelta(days=5)
-    return pd.Series(observed.astype(float).to_numpy(), index=thursdays).loc[start:end]
 
 
 def posting_days(observed: pd.DatetimeIndex) -> pd.DatetimeIndex:
