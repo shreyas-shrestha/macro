@@ -29,6 +29,12 @@ def fetch(series_id: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
     if not late.empty:
         raise ValueError(f"{series_id}: released after the stamp for weeks {late.tolist()}")
     first = pd.Series(first["value"].to_numpy(), index=pd.DatetimeIndex(first["date"]))
+    # A missing first release must not fall back to the revised vintage value.
+    released = vintage.index[vintage.index + RELEASE <= end]
+    covered = released[released >= first.index.min()] if len(first) else []
+    missing = first.index[first.isna()].union(pd.DatetimeIndex(covered).difference(first.index))
+    if not missing.empty:
+        raise ValueError(f"{series_id}: no first release for weeks {missing.date.tolist()}")
     weekly = first.combine_first(vintage.astype(float))
     if (weekly.index.day_of_week != 5).any():
         raise ValueError(f"{series_id}: expected weeks ending Saturday")

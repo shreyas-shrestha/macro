@@ -104,7 +104,9 @@ first release (ALFRED's first ICNSA vintage, 2009-05-28, is dropped as described
 and take the vintage published on 2017-12-31, which includes revisions made after each
 week's release. This is a known deviation: first releases differ from that vintage by a
 median 0.5% (90th percentile 1.4%, maximum 3.8% of the first release) over 2010–2017,
-and features with a year-long window read some pre-2009 weeks until mid-2010. ICNSA is
+and features with a year-long window read some pre-2009 weeks until mid-2010. First
+releases are lower than the vintage in 83% of weeks, so over 2009-06 to 2010-06
+`claims_yoy` is biased down by about 0.006 (12% of its s.d.). ICNSA is
 used rather than the seasonally adjusted ICSA because ICSA is also revised whenever its
 seasonal factors are re-estimated.
 

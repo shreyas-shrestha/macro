@@ -177,6 +177,17 @@ def test_claims_refuse_a_release_after_the_stamp(claims_sources):
         claims.fetch("ICNSA", pd.Timestamp("2013-01-01"), pd.Timestamp("2017-12-31"))
 
 
+@pytest.mark.parametrize("value", [".", None])
+def test_claims_refuse_a_week_without_a_first_release(claims_sources, value):
+    vintage = pd.Series([1.0, 2.0], index=pd.to_datetime(["2013-10-05", "2013-10-12"]))
+    first = [{"date": "2013-10-05", "realtime_start": "2013-10-10", "value": "1"}]
+    if value:
+        first.append({"date": "2013-10-12", "realtime_start": "2013-10-17", "value": value})
+    claims_sources(vintage, first)
+    with pytest.raises(ValueError, match="no first release"):
+        claims.fetch("ICNSA", pd.Timestamp("2013-01-01"), pd.Timestamp("2017-12-31"))
+
+
 def test_claims_refuse_weeks_not_ending_saturday(claims_sources):
     claims_sources(pd.Series([1.0], index=pd.to_datetime(["2017-11-17"])), [])
     with pytest.raises(ValueError, match="Saturday"):
