@@ -5,6 +5,8 @@ from functools import lru_cache
 import exchange_calendars as xcals
 import pandas as pd
 
+INDEX_NAME = "decision_date"
+
 
 @lru_cache(maxsize=32)
 def _nyse_calendar(start_year: int, end_year: int):
