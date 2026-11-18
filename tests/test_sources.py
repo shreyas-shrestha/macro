@@ -125,3 +125,40 @@ def test_fred_values_are_stamped_by_fed_posting_day(monkeypatch):
     assert list(out.index) == [pd.Timestamp("2016-11-14"), pd.Timestamp("2017-10-10")]
     aligned = align(out.loc["2017"], nyse_sessions("2017-10-02", "2017-10-13"), lag=1, max_carry=0)
     assert aligned.first_valid_index() == pd.Timestamp("2017-10-11")
+
+
+def test_claims_are_stamped_by_release_thursday_from_the_vintage_at_end(monkeypatch):
+    requests = []
+
+    class FakeFred:
+        def __init__(self, api_key):
+            pass
+
+        def get_series(self, series_id, observation_start, observation_end, **kwargs):
+            requests.append(kwargs)
+            weeks = pd.to_datetime(["2017-11-18", "2017-12-23", "2017-12-30"])
+            return pd.Series([1.0, 2.0, 3.0], index=weeks)
+
+    monkeypatch.setenv("FRED_API_KEY", "test")
+    monkeypatch.setattr(fred, "Fred", FakeFred)
+    out = fred.fetch_claims("ICNSA", pd.Timestamp("2017-01-01"), pd.Timestamp("2017-12-31"))
+    assert requests == [{"realtime_start": "2017-12-31", "realtime_end": "2017-12-31"}]
+    # The week ending 2017-12-30 is released on 2018-01-04 and dropped.
+    assert list(out.index) == [pd.Timestamp("2017-11-23"), pd.Timestamp("2017-12-28")]
+    # Thanksgiving: released Wednesday 11-22, stamped Thursday, first used Monday 11-27.
+    aligned = align(out, nyse_sessions("2017-11-20", "2017-12-01"), lag=1, max_carry=10)
+    assert aligned.first_valid_index() == pd.Timestamp("2017-11-27")
+
+
+def test_claims_refuse_weeks_not_ending_saturday(monkeypatch):
+    class FakeFred:
+        def __init__(self, api_key):
+            pass
+
+        def get_series(self, series_id, observation_start, observation_end, **kwargs):
+            return pd.Series([1.0], index=pd.to_datetime(["2017-11-17"]))
+
+    monkeypatch.setenv("FRED_API_KEY", "test")
+    monkeypatch.setattr(fred, "Fred", FakeFred)
+    with pytest.raises(ValueError, match="Saturday"):
+        fred.fetch_claims("ICNSA", pd.Timestamp("2017-01-01"), pd.Timestamp("2017-12-31"))
