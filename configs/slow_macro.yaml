@@ -1,0 +1,17 @@
+# Provisional: read by experiments/run_slow_macro.py until the shared harness (#10)
+# replaces it. Each block adds signals from macro.features.slow_macro to the baseline
+# (log trailing RV, log VIX). Fixed before any scoring; see research/slow_macro.md.
+name: slow_macro
+horizons: [5, 21, 63, 126, 252]
+# Negligible next to a few thousand standardized training rows; not tuned.
+ridge_alpha: 1.0
+blocks:
+  claims:
+    signals: [Claims]
+  # ANFCI is real time from 2011-06, so the first refit is at the end of 2012.
+  anfci:
+    signals: [FinancialConditions]
+    forecast_start: 2013-01-01
+  claims_anfci:
+    signals: [Claims, FinancialConditions]
+    forecast_start: 2013-01-01
