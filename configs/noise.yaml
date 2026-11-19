@@ -1,0 +1,9 @@
+# harness sanity check (#10) - random features should NOT beat the baseline
+signal: noise
+module: macro.features.noise
+class: Noise
+horizons: [5, 21, 63]
+threshold:
+  horizon: 21
+  qlike_reduction: 0.05
+  clark_west_p: 0.10
