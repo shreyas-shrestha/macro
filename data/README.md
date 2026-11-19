@@ -72,6 +72,19 @@ kept as market data at *L* = 1, the same reasoning as EMBIG below. Nothing confi
 backfill matches what subscribers saw, so #11 should report whether its results change
 when that window is excluded.
 
+**Credit series (#11).** ALFRED shows no revisions to BAA10Y or DBAA: the first
+release equals today's value for all 943 observations it tracks (2014–2017). Measured
+from observation date to first ALFRED vintage, 88.4% of BAA10Y values first appeared one
+session later and 3.8% two sessions later. Most of the remaining 7.7% are the 2017 part of the
+backfill above (one observation per lag, out to 54 sessions).
+`Credit(exclude_backfill=True)` blanks those sessions for the robustness run.
+`experiments/credit_diagnostics.py` reproduces these numbers.
+
+**ICE BofA spreads are not available.** Since April 2026 FRED serves only a rolling
+three-year window for every ICE BofA series, including the high-yield OAS
+(BAMLH0A0HYM2), so none of them reach the development sample. #24 covers high-yield
+spreads from TRACE.
+
 **ALFRED first releases.** NFCI and ICSA are revised, so they are read as first
 releases, stamped by the date each value was first published, plus one session because
 that date has no time of day. ALFRED began tracking NFCI in 2011; its whole earlier
