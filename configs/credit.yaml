@@ -1,0 +1,13 @@
+# Credit spread signal (#11): baseline (log RV + log VIX^2) vs baseline + credit.
+signal: credit
+module: macro.features.credit
+class: Credit
+features: [baa10y_level, baa10y_change_20, baa10y_z_252, baa_aaa_level]
+horizons: [5, 21, 63]
+threshold:
+  horizon: 21
+  qlike_reduction: 0.05
+  clark_west_p: 0.10
+# Not in one run yet (run_signal compares one signal with the baseline, #31):
+#   credit + MOVE features (#13), and Credit(exclude_backfill=True) for the
+#   2016-10 to 2017-03 Moody's backfill (data/README.md).
