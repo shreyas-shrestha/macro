@@ -18,8 +18,6 @@ from macro.models.target import realized_variance
 MIN_TRAIN_ROWS = 504
 # Not tuned. Shrinks standardized slopes by roughly ALPHA / n.
 ALPHA = 1.0
-
-
 BASELINE_COLUMNS = ["log_rv", "log_vix"]
 
 
