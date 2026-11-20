@@ -127,3 +127,19 @@ def test_readme_documents_every_series():
         assert source_id.strip("`") == spec.source_id, name
         assert pd.Timestamp(start) == spec.start, name
         assert (int(lag), int(carry)) == (spec.lag, spec.max_carry), name
+
+
+def test_holdout_reads_unlock_load_only_inside_the_block(fake_source, tmp_path):
+    with series.holdout_reads():
+        out = series.load("FAKE", "2018-01-31")
+    assert out.index[-1] == pd.Timestamp("2018-01-31")
+    assert not list(tmp_path.rglob("*.parquet"))
+    with pytest.raises(ValueError, match="holdout"):
+        series.load("FAKE", "2018-01-31")
+
+
+def test_holdout_reads_reset_after_an_exception(fake_source):
+    with pytest.raises(RuntimeError), series.holdout_reads():
+        raise RuntimeError
+    with pytest.raises(ValueError, match="holdout"):
+        series.load("FAKE", "2018-01-31")

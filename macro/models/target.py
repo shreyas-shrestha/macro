@@ -25,9 +25,13 @@ def realized_variance(returns: pd.Series, h: int) -> pd.Series:
     return (returns**2).rolling(h).sum().shift(-h) * ANNUALIZE / h
 
 
-def forecast_grid(returns: pd.Series, h: int) -> pd.DatetimeIndex:
-    """Month-end sessions from ``DEV_START`` whose target window ends by ``DEV_END``."""
-    dev = returns.loc[:DEV_END]
-    month_ends = pd.DatetimeIndex(dev.index.to_series().groupby(dev.index.to_period("M")).max())
-    complete = realized_variance(dev, h).notna()[month_ends].to_numpy()
-    return month_ends[complete & (month_ends >= DEV_START)]
+def forecast_grid(returns: pd.Series, h: int, start=DEV_START, end=DEV_END) -> pd.DatetimeIndex:
+    """Month-end sessions from ``start`` whose target window ends by ``end``.
+
+    The defaults are the development period; the holdout run passes its own dates.
+    """
+    sample = returns.loc[:end]
+    sessions = sample.index
+    month_ends = pd.DatetimeIndex(sessions.to_series().groupby(sessions.to_period("M")).max())
+    complete = realized_variance(sample, h).notna()[month_ends].to_numpy()
+    return month_ends[complete & (month_ends >= pd.Timestamp(start))]
