@@ -61,8 +61,37 @@ Run: `uv run python experiments/run_signal.py --config configs/hy_credit.yaml`. 
 
 **Reading.** The HY spread carries statistically detectable short-horizon information: Clark-West is significant at h = 5 and h = 21. The economic improvement at the pre-registered horizon is too small to advance, and at h = 63 the signal hurts. The h = 21 gain is uneven across years: it comes mainly from 2009, 2010 and 2012, and the signal model is worse in 2011, 2013-2015 and early 2017 (`run_signal.py` prints the breakdown). The result stands as pre-registered; no feature, method or threshold was changed after seeing it.
 
-**Not yet official:**
-- *Residual stress (M1).* The nested comparison of VIX + RV + `HYCredit` + `HYResidualStress` against VIX + RV + `HYCredit` needs the nested references `run_signal.py` gained in #32. #32 merged after this result was recorded. The official residual run is the next step and has not been reported yet.
+### Residual stress extension (M1): official nested result
+
+**M1 residual stress is not-advancing.** Adding `HYResidualStress` (`residual_p90`, `residual_iqr`, `residual_positive_share`) to VIX + RV + `HYCredit` makes QLIKE **9.17% worse** at h = 21, with Clark-West p = 0.613. The pre-registered bar is at least 5% lower QLIKE with p < 0.10, so it fails. QLIKE is also worse at h = 5 (−6.23%) and h = 63 (−2.82%).
+
+Run: `uv run python experiments/run_signal.py --config configs/hy_credit_residual.yaml`. This uses the merged #10 harness with #32's nested references, the same rule as the primary test judged against the reference model (`against: references`), and the production M1 features unchanged. All three models are fitted and scored on the same rows: 101 month-end dates, 2009-01-30 to 2017-05-31. Outputs: `results/forecasts/hy_credit_residual_h{5,21,63}.csv` and the `hy_credit_residual` rows of `results/scorecard.csv`.
+
+QLIKE of the three models:
+
+| h | VIX + RV | + HYCredit | + HYCredit + M1 |
+|---|---|---|---|
+| 5 | 0.2749 | 0.2616 | 0.2779 |
+| 21 | 0.2776 | 0.2721 | 0.2970 |
+| 63 | 0.2990 | 0.3266 | 0.3358 |
+
+These share training rows (`residual_positive_share` starts 2006-04-05), so the + HYCredit column can differ from the primary run in the fourth decimal.
+
+Effect of adding M1 on top of VIX + RV + `HYCredit`:
+
+| h | QLIKE reduction | R²OOS, MSE log vol | Clark-West t | Clark-West p | Threshold |
+|---|---|---|---|---|---|
+| 5 | −6.23% | −5.4% | −1.63 | 0.949 | reported only |
+| **21** | **−9.17%** | **−8.5%** | **−0.29** | **0.613** | **FAIL** |
+| 63 | −2.82% | +10.7% | 1.59 | 0.056 | reported only |
+
+Against VIX + RV alone, the full model's QLIKE reduction is −1.09% at h = 5, −7.00% at h = 21 and −12.31% at h = 63.
+
+**Reading.** At h = 21, M1 does worst where it was meant to help. QLIKE against `HYCredit` is worse in 2009 (−89%), 2011 (−13%) and 2015 (−16%), and in the early-2009, 2010 and 2011 stress windows. It gains only in calmer years: 2013 (+23%) and 2016 (+12%). With three extra features on about 101 forecasts, it mostly adds estimation noise on top of broad HY stress, consistent with the overlap found in the descriptive analysis. At h = 63, log-vol MSE improves and Clark-West p is 0.056 while QLIKE still worsens. That horizon does not decide the label.
+
+**Decision.** M1 is dropped as a production extension and is not carried into the combination (#18). `HYResidualStress`, its tests and the descriptive analysis below stay in the repository as a documented negative result. No method, feature or threshold was changed after seeing the result, and no Residual v2 was started. A redesigned residual would be chosen after seeing the only pre-2018 sample, and could not reach the holdout until a post-2017 rating source exists.
+
+**Still pending:**
 - *Baa (#11).* The incremental comparisons with #11's Baa features stay pending until #11 is merged and a `FRED_API_KEY` is available to load BAA10Y, DBAA and DAAA. They are secondary and cannot change the primary label.
 
 **Harness robustness question (not a reason to revisit this result).** The shared harness skips any refit year with fewer than 504 training rows (`MIN_TRAIN_ROWS`, about two years of sessions). Because #24's features start in 2006, the 2006-2008 refit years are skipped and scored forecasts begin in January 2009. The 2008 crisis is therefore almost absent: the "2008 crisis" episode row holds only January-March 2009. Every signal that starts around 2006 is affected the same way, so this is a harness-wide question for #10. It does not overturn the pre-registered result.
@@ -163,7 +192,7 @@ Scripts in `scripts/hy_credit/` (WRDS steps prompt for the password once; set `W
 
 ## Extension: residual (within-rating) credit stress — descriptive, development only
 
-Code: `macro/features/hy_residual.py` (`HYResidualStress`), runner `scripts/hy_credit/residual_research.py`, tests `tests/test_hy_residual.py`. Outputs (aggregates only): `results/hy_credit/residual/`. Issuer-level residuals stay in `data/cache/hy_residual/` (git-ignored). **This is not evidence of predictive improvement; no forecasting test has been run.**
+Code: `macro/features/hy_residual.py` (`HYResidualStress`), runner `scripts/hy_credit/residual_research.py`, tests `tests/test_hy_residual.py`. Outputs (aggregates only): `results/hy_credit/residual/`. Issuer-level residuals stay in `data/cache/hy_residual/` (git-ignored). **Predictive result: not-advancing** (see Residual stress extension (M1): official nested result). The descriptive analysis below is kept as a documented negative result.
 
 **Final decision (production, decision B).** The production residual is
 
@@ -265,13 +294,13 @@ Code: `macro/data/sector.py`, `past_sector_premium` / `add_sector_offset` / spec
 
 **Recommendation: B, retain no-sector M1 as the single preregistered residual add-on.** All three variants are point-in-time and cover the sample. The past-sector premium meets neither goal reliably: it fails to remove normal sector differences in 2013-15 (worse than no adjustment) and erases the 2011 financials stress. Its extra distinctness from HY stress comes with slow estimation drift that turns the GFC into a below-calm period, and its behaviour depends on a window choice that cannot be resolved without looking at outcomes. M1 has no estimated history, is transparent, and its residual stress is openly a mix of idiosyncratic and sector-concentrated repricing; the point-in-time GICS tail composition is reported alongside it for interpretation. **Adopted:** `CHOSEN_SPEC = "M1"`; `HYResidualStress` reads the M1 series; M2/M2P remain in the code for research only and their outputs (`results/hy_credit/residual_sector/`) are labelled as a research comparison.
 
-**To test once the harness exists** (h = 21, same QLIKE / Clark-West protocol; no threshold changes): RV + VIX; + `HYCredit`; + `HYCredit` + `HYResidualStress` (`residual_p90`, `residual_iqr`, `residual_positive_share`); and, once #11 exists, + Baa features. The question is whether residual stress improves forecasts after controlling for broad HY stress. The `HYCredit` step is now run (see Development result). The residual step is the next official run (#32 is merged). The Baa steps are pending #11.
+**To test once the harness exists** (h = 21, same QLIKE / Clark-West protocol; no threshold changes): RV + VIX; + `HYCredit`; + `HYCredit` + `HYResidualStress` (`residual_p90`, `residual_iqr`, `residual_positive_share`); and, once #11 exists, + Baa features. The question is whether residual stress improves forecasts after controlling for broad HY stress. The `HYCredit` and residual steps are now run: both are not-advancing (see Development result). The Baa steps are pending #11.
 
 ## Status
 
 - The real-sample validation passes all gates. The development pull (144 months, 2006-01 to 2017-12) and build are complete; QA reports no failures (see Development results).
 - **Primary criterion: not-advancing.** At h = 21, QLIKE is 1.99% lower than VIX + RV (Clark-West p = 0.021), short of the pre-registered 5%. See Development result.
-- Residual-stress extension: production spec M1 (decision B), sector used for interpretation only. Its official nested predictive comparison (possible since #32 merged) has not been run yet.
+- **Residual-stress extension (M1): not-advancing.** At h = 21, QLIKE is 9.17% worse than VIX + RV + `HYCredit` (Clark-West p = 0.613), and it is also worse at h = 5 and h = 63. It is dropped as a production extension; code, tests and the descriptive analysis are kept as a documented negative result.
 - Baa incremental comparisons wait for #11 to merge and a `FRED_API_KEY`.
 
 ## Open questions
