@@ -201,6 +201,8 @@ def test_kwargs_reach_the_signal(sources):
         ({"treshold": {}}, r"unknown config keys \['treshold'\]"),
         ({"reference": ["fake"]}, r"unknown config keys \['reference'\]"),
         ({"threshold": {"horizon": 21}}, "threshold needs exactly"),
+        ({"threshold": 21}, "threshold must be a mapping"),
+        ({"signal": None}, "must name the run"),
         ({"threshold": TWO["threshold"] | {"against": "fake"}}, "threshold against"),
         ({"references": [], "threshold": TWO["threshold"] | {"against": "references"}}, "against"),
         ({"references": ["fake", "fake"]}, "distinct signal names"),

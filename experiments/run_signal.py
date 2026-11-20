@@ -72,6 +72,8 @@ def check_config(config: dict) -> list[dict]:
     unknown = config.keys() - CONFIG_KEYS - SIGNAL_KEYS
     if unknown:
         raise ValueError(f"unknown config keys {sorted(unknown)}")
+    if not isinstance(config.get("signal"), str):
+        raise ValueError("signal: must name the run")
     single = SIGNAL_KEYS & config.keys()
     if "signals" in config:
         if single:
@@ -94,6 +96,8 @@ def check_config(config: dict) -> list[dict]:
     horizons = config.get("horizons", list(HORIZONS))
     threshold = config.get("threshold")
     if threshold is not None:
+        if not isinstance(threshold, dict):
+            raise ValueError(f"threshold must be a mapping, got {threshold!r}")
         missing = THRESHOLD_KEYS - threshold.keys()
         unknown = threshold.keys() - THRESHOLD_KEYS - {"against"}
         if missing or unknown:
