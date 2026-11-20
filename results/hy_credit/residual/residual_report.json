@@ -1,0 +1,1142 @@
+{
+ "spec": "M1",
+ "selection_rule": "add a component if median daily R2 rises by >= 0.02",
+ "spec_comparison": [
+  {
+   "model": "M0",
+   "sample": "all",
+   "days_fitted": 2848,
+   "days_not_fitted": 4,
+   "issuer_days": 1669937,
+   "median_daily_r2": 0.6787,
+   "p10_daily_r2": 0.5964,
+   "median_residual_iqr": 0.458,
+   "median_residual_std": 0.3996,
+   "median_residual_p90": 0.4882
+  },
+  {
+   "model": "M1",
+   "sample": "all",
+   "days_fitted": 2848,
+   "days_not_fitted": 4,
+   "issuer_days": 1669937,
+   "median_daily_r2": 0.7308,
+   "p10_daily_r2": 0.6531,
+   "median_residual_iqr": 0.4228,
+   "median_residual_std": 0.3835,
+   "median_residual_p90": 0.4613
+  },
+  {
+   "model": "M3",
+   "sample": "all",
+   "days_fitted": 2848,
+   "days_not_fitted": 4,
+   "issuer_days": 1669937,
+   "median_daily_r2": 0.7375,
+   "p10_daily_r2": 0.6571,
+   "median_residual_iqr": 0.4148,
+   "median_residual_std": 0.378,
+   "median_residual_p90": 0.4541
+  },
+  {
+   "model": "M1",
+   "sample": "PIT-classified",
+   "days_fitted": 2848,
+   "days_not_fitted": 4,
+   "issuer_days": 1640796,
+   "median_daily_r2": 0.7325,
+   "p10_daily_r2": 0.6547,
+   "median_residual_iqr": 0.4196,
+   "median_residual_std": 0.3814,
+   "median_residual_p90": 0.4564
+  },
+  {
+   "model": "M2",
+   "sample": "PIT-classified",
+   "days_fitted": 2848,
+   "days_not_fitted": 4,
+   "issuer_days": 1640796,
+   "median_daily_r2": 0.7717,
+   "p10_daily_r2": 0.7099,
+   "median_residual_iqr": 0.376,
+   "median_residual_std": 0.3462,
+   "median_residual_p90": 0.3983
+  }
+ ],
+ "excluded": {
+  "bond_days_input": 7491671,
+  "bond_days_model_ready": 6463380,
+  "unrated": 1025566,
+  "rated_D": 2725
+ },
+ "observation_range": [
+  "2006-01-09",
+  "2017-06-01"
+ ],
+ "days_fitted": 2848,
+ "days_not_fitted": 4,
+ "issuer_days": 1669937,
+ "hy_issuer_days": 653656,
+ "ig_issuer_days": 1016281,
+ "daily_r2": {
+  "n": 2848,
+  "q00": 0.5052,
+  "q01": 0.5632,
+  "q05": 0.6131,
+  "q25": 0.6989,
+  "q50": 0.7308,
+  "q75": 0.7547,
+  "q95": 0.7965,
+  "q99": 0.8186,
+  "q100": 0.8481
+ },
+ "r2_by_year": {
+  "2006": 0.786,
+  "2007": 0.7527,
+  "2008": 0.6438,
+  "2009": 0.6912,
+  "2010": 0.7352,
+  "2011": 0.7284,
+  "2012": 0.7361,
+  "2013": 0.7036,
+  "2014": 0.7048,
+  "2015": 0.7326,
+  "2016": 0.7531,
+  "2017": 0.732
+ },
+ "issuers_per_day": {
+  "n": 2848,
+  "q00": 175.0,
+  "q01": 351.94,
+  "q05": 421.35,
+  "q25": 502.75,
+  "q50": 590.5,
+  "q75": 685.0,
+  "q95": 723.0,
+  "q99": 744.0,
+  "q100": 784.0
+ },
+ "checks": {
+  "no_holdout_dates": true,
+  "no_duplicate_issuer_days": true,
+  "max_abs_bond_residual_log": 5.356185858668688,
+  "residuals_within_log_spread_range": true,
+  "min_issuers_per_fitted_day": 175,
+  "min_issuers_rule": 100,
+  "rating_dates_not_after_observation": true
+ },
+ "threshold": {
+  "rule": "q90 of all issuer residuals on days strictly before t; first 60 days missing",
+  "summary": {
+   "n": 2788,
+   "q00": 0.38,
+   "q01": 0.38,
+   "q05": 0.38,
+   "q25": 0.424,
+   "q50": 0.45,
+   "q75": 0.46,
+   "q95": 0.466,
+   "q99": 0.466,
+   "q100": 0.466
+  },
+  "first_available": "2006-04-05"
+ },
+ "features": {
+  "residual_p90": {
+   "n": 2848,
+   "q00": 0.3048,
+   "q01": 0.3286,
+   "q05": 0.3517,
+   "q25": 0.4189,
+   "q50": 0.4613,
+   "q75": 0.4974,
+   "q95": 0.5692,
+   "q99": 0.6452,
+   "q100": 0.6847
+  },
+  "residual_p95": {
+   "n": 2848,
+   "q00": 0.4021,
+   "q01": 0.4544,
+   "q05": 0.4987,
+   "q25": 0.5952,
+   "q50": 0.6499,
+   "q75": 0.7034,
+   "q95": 0.7984,
+   "q99": 0.9455,
+   "q100": 1.0183
+  },
+  "residual_iqr": {
+   "n": 2848,
+   "q00": 0.2802,
+   "q01": 0.3144,
+   "q05": 0.3342,
+   "q25": 0.3797,
+   "q50": 0.4228,
+   "q75": 0.4606,
+   "q95": 0.5194,
+   "q99": 0.5662,
+   "q100": 0.6358
+  },
+  "residual_mad": {
+   "n": 2848,
+   "q00": 0.1435,
+   "q01": 0.1563,
+   "q05": 0.1667,
+   "q25": 0.1887,
+   "q50": 0.2105,
+   "q75": 0.2287,
+   "q95": 0.2573,
+   "q99": 0.2778,
+   "q100": 0.3051
+  },
+  "residual_std": {
+   "n": 2848,
+   "q00": 0.2736,
+   "q01": 0.2936,
+   "q05": 0.313,
+   "q25": 0.3555,
+   "q50": 0.3835,
+   "q75": 0.4098,
+   "q95": 0.4495,
+   "q99": 0.4748,
+   "q100": 0.4941
+  },
+  "residual_positive_share": {
+   "n": 2788,
+   "q00": 0.0552,
+   "q01": 0.0663,
+   "q05": 0.0748,
+   "q25": 0.0917,
+   "q50": 0.1069,
+   "q75": 0.1199,
+   "q95": 0.1479,
+   "q99": 0.1776,
+   "q100": 0.1925
+  },
+  "mean_positive_residual": {
+   "n": 2848,
+   "q00": 0.2071,
+   "q01": 0.2213,
+   "q05": 0.2362,
+   "q25": 0.2738,
+   "q50": 0.2965,
+   "q75": 0.3209,
+   "q95": 0.3721,
+   "q99": 0.4203,
+   "q100": 0.4463
+  },
+  "notch_gap_ge1_share": {
+   "n": 2848,
+   "q00": 0.2816,
+   "q01": 0.3055,
+   "q05": 0.32,
+   "q25": 0.3412,
+   "q50": 0.3571,
+   "q75": 0.3743,
+   "q95": 0.4068,
+   "q99": 0.4271,
+   "q100": 0.4518
+  },
+  "notch_gap_ge2_share": {
+   "n": 2848,
+   "q00": 0.1054,
+   "q01": 0.1157,
+   "q05": 0.1281,
+   "q25": 0.1503,
+   "q50": 0.1692,
+   "q75": 0.1912,
+   "q95": 0.226,
+   "q99": 0.2523,
+   "q100": 0.2822
+  },
+  "residual_mean": {
+   "n": 2848,
+   "q00": -0.0048,
+   "q01": -0.0028,
+   "q05": -0.001,
+   "q25": 0.0018,
+   "q50": 0.0044,
+   "q75": 0.0073,
+   "q95": 0.011,
+   "q99": 0.0136,
+   "q100": 0.0225
+  },
+  "residual_median": {
+   "n": 2848,
+   "q00": -0.0926,
+   "q01": -0.0786,
+   "q05": -0.0599,
+   "q25": -0.03,
+   "q50": -0.0152,
+   "q75": -0.0039,
+   "q95": 0.0172,
+   "q99": 0.0298,
+   "q100": 0.0501
+  },
+  "notch_gap_median": {
+   "n": 2848,
+   "q00": -1.0,
+   "q01": -1.0,
+   "q05": 0.0,
+   "q25": 0.0,
+   "q50": 0.0,
+   "q75": 0.0,
+   "q95": 0.0,
+   "q99": 0.0,
+   "q100": 0.0
+  },
+  "notch_gap_p90": {
+   "n": 2848,
+   "q00": 2.0,
+   "q01": 2.0,
+   "q05": 2.0,
+   "q25": 2.0,
+   "q50": 2.0,
+   "q75": 2.0,
+   "q95": 3.0,
+   "q99": 3.0,
+   "q100": 4.0
+  }
+ },
+ "feature_by_year_mean": {
+  "2006": {
+   "residual_p90": 0.3971,
+   "residual_p95": 0.5729,
+   "residual_iqr": 0.3669,
+   "residual_mad": 0.1832,
+   "residual_std": 0.3444,
+   "residual_positive_share": 0.0838,
+   "mean_positive_residual": 0.2626,
+   "notch_gap_ge1_share": 0.3431,
+   "notch_gap_ge2_share": 0.153
+  },
+  "2007": {
+   "residual_p90": 0.362,
+   "residual_p95": 0.5239,
+   "residual_iqr": 0.3431,
+   "residual_mad": 0.1701,
+   "residual_std": 0.3189,
+   "residual_positive_share": 0.0893,
+   "mean_positive_residual": 0.2449,
+   "notch_gap_ge1_share": 0.3498,
+   "notch_gap_ge2_share": 0.1671
+  },
+  "2008": {
+   "residual_p90": 0.4474,
+   "residual_p95": 0.6499,
+   "residual_iqr": 0.4224,
+   "residual_mad": 0.2063,
+   "residual_std": 0.3665,
+   "residual_positive_share": 0.1253,
+   "mean_positive_residual": 0.3155,
+   "notch_gap_ge1_share": 0.3413,
+   "notch_gap_ge2_share": 0.2062
+  },
+  "2009": {
+   "residual_p90": 0.5358,
+   "residual_p95": 0.7223,
+   "residual_iqr": 0.4909,
+   "residual_mad": 0.2414,
+   "residual_std": 0.4103,
+   "residual_positive_share": 0.1441,
+   "mean_positive_residual": 0.3458,
+   "notch_gap_ge1_share": 0.3635,
+   "notch_gap_ge2_share": 0.2027
+  },
+  "2010": {
+   "residual_p90": 0.471,
+   "residual_p95": 0.6508,
+   "residual_iqr": 0.443,
+   "residual_mad": 0.2214,
+   "residual_std": 0.3852,
+   "residual_positive_share": 0.1112,
+   "mean_positive_residual": 0.2946,
+   "notch_gap_ge1_share": 0.3761,
+   "notch_gap_ge2_share": 0.1695
+  },
+  "2011": {
+   "residual_p90": 0.4623,
+   "residual_p95": 0.6677,
+   "residual_iqr": 0.411,
+   "residual_mad": 0.2051,
+   "residual_std": 0.3775,
+   "residual_positive_share": 0.1045,
+   "mean_positive_residual": 0.291,
+   "notch_gap_ge1_share": 0.355,
+   "notch_gap_ge2_share": 0.1633
+  },
+  "2012": {
+   "residual_p90": 0.5163,
+   "residual_p95": 0.7042,
+   "residual_iqr": 0.479,
+   "residual_mad": 0.2385,
+   "residual_std": 0.4085,
+   "residual_positive_share": 0.1219,
+   "mean_positive_residual": 0.3255,
+   "notch_gap_ge1_share": 0.3653,
+   "notch_gap_ge2_share": 0.1841
+  },
+  "2013": {
+   "residual_p90": 0.4511,
+   "residual_p95": 0.6221,
+   "residual_iqr": 0.435,
+   "residual_mad": 0.2173,
+   "residual_std": 0.3829,
+   "residual_positive_share": 0.0962,
+   "mean_positive_residual": 0.2877,
+   "notch_gap_ge1_share": 0.3874,
+   "notch_gap_ge2_share": 0.1977
+  },
+  "2014": {
+   "residual_p90": 0.4459,
+   "residual_p95": 0.6387,
+   "residual_iqr": 0.4222,
+   "residual_mad": 0.2112,
+   "residual_std": 0.4051,
+   "residual_positive_share": 0.0949,
+   "mean_positive_residual": 0.2898,
+   "notch_gap_ge1_share": 0.3847,
+   "notch_gap_ge2_share": 0.1698
+  },
+  "2015": {
+   "residual_p90": 0.49,
+   "residual_p95": 0.7486,
+   "residual_iqr": 0.4073,
+   "residual_mad": 0.2025,
+   "residual_std": 0.4158,
+   "residual_positive_share": 0.1092,
+   "mean_positive_residual": 0.3222,
+   "notch_gap_ge1_share": 0.3378,
+   "notch_gap_ge2_share": 0.1413
+  },
+  "2016": {
+   "residual_p90": 0.5003,
+   "residual_p95": 0.7046,
+   "residual_iqr": 0.4566,
+   "residual_mad": 0.2267,
+   "residual_std": 0.4051,
+   "residual_positive_share": 0.1091,
+   "mean_positive_residual": 0.3243,
+   "notch_gap_ge1_share": 0.3467,
+   "notch_gap_ge2_share": 0.1528
+  },
+  "2017": {
+   "residual_p90": 0.4145,
+   "residual_p95": 0.5724,
+   "residual_iqr": 0.3556,
+   "residual_mad": 0.1785,
+   "residual_std": 0.3602,
+   "residual_positive_share": 0.0823,
+   "mean_positive_residual": 0.2577,
+   "notch_gap_ge1_share": 0.3532,
+   "notch_gap_ge2_share": 0.1393
+  }
+ },
+ "extreme_dates_top5": {
+  "residual_p90": {
+   "2016-02-17": 0.6847,
+   "2009-03-06": 0.6814,
+   "2016-01-25": 0.6775,
+   "2016-02-03": 0.677,
+   "2016-02-04": 0.6761
+  },
+  "residual_iqr": {
+   "2012-10-29": 0.6358,
+   "2009-03-17": 0.6333,
+   "2009-02-11": 0.6105,
+   "2009-03-12": 0.6071,
+   "2009-02-06": 0.6024
+  },
+  "residual_positive_share": {
+   "2009-04-17": 0.1925,
+   "2009-02-13": 0.1906,
+   "2009-03-04": 0.1897,
+   "2009-03-17": 0.1895,
+   "2009-03-09": 0.1882
+  },
+  "notch_gap_ge1_share": {
+   "2014-01-13": 0.4518,
+   "2013-12-23": 0.4486,
+   "2013-12-20": 0.4459,
+   "2013-12-30": 0.4437,
+   "2013-12-31": 0.4427
+  }
+ },
+ "composition": {
+  "corr_residual_p90_vs_hy_issuer_share": -0.414,
+  "corr_residual_p90_hy_vs_ig": -0.303,
+  "median_residual_p90_hy": 0.4755,
+  "median_residual_p90_ig": 0.4136
+ },
+ "decision_date_rows_with_residual_p90": 2874,
+ "last_decision_date_with_residual": "2017-06-09",
+ "comparison": {
+  "correlation_levels_and_changes": {
+   "residual_p90": {
+    "hy_spread": 0.462,
+    "hy_ig_gap": 0.495,
+    "hy_spread_change_20": -0.159,
+    "hy_ig_gap_change_20": -0.111
+   },
+   "residual_p95": {
+    "hy_spread": 0.394,
+    "hy_ig_gap": 0.422,
+    "hy_spread_change_20": -0.057,
+    "hy_ig_gap_change_20": -0.031
+   },
+   "residual_iqr": {
+    "hy_spread": 0.505,
+    "hy_ig_gap": 0.529,
+    "hy_spread_change_20": -0.206,
+    "hy_ig_gap_change_20": -0.152
+   },
+   "residual_positive_share": {
+    "hy_spread": 0.706,
+    "hy_ig_gap": 0.704,
+    "hy_spread_change_20": -0.118,
+    "hy_ig_gap_change_20": -0.08
+   },
+   "mean_positive_residual": {
+    "hy_spread": 0.53,
+    "hy_ig_gap": 0.541,
+    "hy_spread_change_20": -0.094,
+    "hy_ig_gap_change_20": -0.06
+   },
+   "notch_gap_ge1_share": {
+    "hy_spread": -0.084,
+    "hy_ig_gap": -0.098,
+    "hy_spread_change_20": -0.241,
+    "hy_ig_gap_change_20": -0.213
+   },
+   "residual_p90_change_20": {
+    "hy_spread": 0.095,
+    "hy_ig_gap": 0.102,
+    "hy_spread_change_20": 0.013,
+    "hy_ig_gap_change_20": 0.053
+   },
+   "residual_p95_change_20": {
+    "hy_spread": 0.028,
+    "hy_ig_gap": 0.034,
+    "hy_spread_change_20": -0.022,
+    "hy_ig_gap_change_20": 0.018
+   },
+   "residual_iqr_change_20": {
+    "hy_spread": 0.118,
+    "hy_ig_gap": 0.128,
+    "hy_spread_change_20": -0.007,
+    "hy_ig_gap_change_20": 0.04
+   },
+   "residual_positive_share_change_20": {
+    "hy_spread": 0.061,
+    "hy_ig_gap": 0.066,
+    "hy_spread_change_20": -0.014,
+    "hy_ig_gap_change_20": 0.023
+   },
+   "mean_positive_residual_change_20": {
+    "hy_spread": 0.055,
+    "hy_ig_gap": 0.064,
+    "hy_spread_change_20": -0.019,
+    "hy_ig_gap_change_20": 0.033
+   },
+   "notch_gap_ge1_share_change_20": {
+    "hy_spread": 0.037,
+    "hy_ig_gap": 0.027,
+    "hy_spread_change_20": -0.157,
+    "hy_ig_gap_change_20": -0.174
+   }
+  },
+  "spearman_levels": {
+   "residual_p90": {
+    "hy_spread": 0.501,
+    "hy_ig_gap": 0.52,
+    "hy_spread_change_20": -0.228,
+    "hy_ig_gap_change_20": -0.167
+   },
+   "residual_p95": {
+    "hy_spread": 0.488,
+    "hy_ig_gap": 0.496,
+    "hy_spread_change_20": -0.116,
+    "hy_ig_gap_change_20": -0.078
+   },
+   "residual_iqr": {
+    "hy_spread": 0.478,
+    "hy_ig_gap": 0.493,
+    "hy_spread_change_20": -0.265,
+    "hy_ig_gap_change_20": -0.19
+   },
+   "residual_positive_share": {
+    "hy_spread": 0.701,
+    "hy_ig_gap": 0.684,
+    "hy_spread_change_20": -0.156,
+    "hy_ig_gap_change_20": -0.114
+   },
+   "mean_positive_residual": {
+    "hy_spread": 0.565,
+    "hy_ig_gap": 0.56,
+    "hy_spread_change_20": -0.146,
+    "hy_ig_gap_change_20": -0.099
+   },
+   "notch_gap_ge1_share": {
+    "hy_spread": -0.149,
+    "hy_ig_gap": -0.149,
+    "hy_spread_change_20": -0.309,
+    "hy_ig_gap_change_20": -0.246
+   }
+  },
+  "variance_not_explained_by_hy_features": {
+   "residual_p90": {
+    "levels_on_hy_spread_and_gap": {
+     "r2": 0.263,
+     "distinct_share": 0.737
+    },
+    "change20_on_hy_changes": {
+     "r2": 0.023,
+     "distinct_share": 0.977
+    }
+   },
+   "residual_p95": {
+    "levels_on_hy_spread_and_gap": {
+     "r2": 0.19,
+     "distinct_share": 0.81
+    },
+    "change20_on_hy_changes": {
+     "r2": 0.022,
+     "distinct_share": 0.978
+    }
+   },
+   "residual_iqr": {
+    "levels_on_hy_spread_and_gap": {
+     "r2": 0.287,
+     "distinct_share": 0.713
+    },
+    "change20_on_hy_changes": {
+     "r2": 0.03,
+     "distinct_share": 0.97
+    }
+   },
+   "residual_positive_share": {
+    "levels_on_hy_spread_and_gap": {
+     "r2": 0.502,
+     "distinct_share": 0.498
+    },
+    "change20_on_hy_changes": {
+     "r2": 0.019,
+     "distinct_share": 0.981
+    }
+   },
+   "mean_positive_residual": {
+    "levels_on_hy_spread_and_gap": {
+     "r2": 0.292,
+     "distinct_share": 0.708
+    },
+    "change20_on_hy_changes": {
+     "r2": 0.036,
+     "distinct_share": 0.964
+    }
+   },
+   "notch_gap_ge1_share": {
+    "levels_on_hy_spread_and_gap": {
+     "r2": 0.014,
+     "distinct_share": 0.986
+    },
+    "change20_on_hy_changes": {
+     "r2": 0.031,
+     "distinct_share": 0.969
+    }
+   }
+  },
+  "lead_lag_corr_change20_residual_t_vs_hy_t_plus_k": {
+   "residual_p90": {
+    "k=-40": 0.054,
+    "k=-20": 0.048,
+    "k=-10": 0.031,
+    "k=0": 0.013,
+    "k=10": 0.051,
+    "k=20": 0.042,
+    "k=40": -0.05
+   },
+   "residual_positive_share": {
+    "k=-40": 0.104,
+    "k=-20": 0.103,
+    "k=-10": 0.04,
+    "k=0": -0.014,
+    "k=10": 0.022,
+    "k=20": 0.05,
+    "k=40": -0.04
+   },
+   "residual_iqr": {
+    "k=-40": 0.101,
+    "k=-20": 0.174,
+    "k=-10": 0.094,
+    "k=0": -0.007,
+    "k=10": -0.001,
+    "k=20": 0.017,
+    "k=40": -0.029
+   }
+  },
+  "residual_high_while_hy_moderate": {
+   "rule": "expanding z(residual_p90) > 1 and expanding z(hy_spread) < 0.5 (min 60 obs)",
+   "sessions": 299,
+   "by_year": {
+    "2006": 3,
+    "2009": 28,
+    "2010": 15,
+    "2011": 6,
+    "2012": 113,
+    "2013": 8,
+    "2014": 9,
+    "2015": 46,
+    "2016": 71
+   },
+   "episodes_ge_5_sessions": [
+    [
+     "2009-07-28",
+     "2009-08-11",
+     11
+    ],
+    [
+     "2012-02-02",
+     "2012-02-08",
+     5
+    ],
+    [
+     "2012-02-10",
+     "2012-02-29",
+     13
+    ],
+    [
+     "2012-03-02",
+     "2012-03-09",
+     6
+    ],
+    [
+     "2012-03-29",
+     "2012-04-04",
+     5
+    ],
+    [
+     "2012-05-08",
+     "2012-05-14",
+     5
+    ],
+    [
+     "2012-08-07",
+     "2012-08-16",
+     8
+    ],
+    [
+     "2012-10-17",
+     "2012-11-05",
+     12
+    ],
+    [
+     "2014-12-23",
+     "2015-01-05",
+     8
+    ],
+    [
+     "2015-12-03",
+     "2016-02-05",
+     44
+    ],
+    [
+     "2016-02-18",
+     "2016-03-23",
+     25
+    ],
+    [
+     "2016-03-28",
+     "2016-04-08",
+     10
+    ],
+    [
+     "2016-04-13",
+     "2016-04-21",
+     7
+    ]
+   ]
+  },
+  "stress_windows": {
+   "2007-09 financial crisis": {
+    "hy_spread": {
+     "mean_in_window": 718.7011,
+     "mean_outside_windows": 402.8325,
+     "peak_date": "2008-12-17",
+     "first_above_own_expanding_p90": "2007-07-23"
+    },
+    "hy_ig_gap": {
+     "mean_in_window": 422.7506,
+     "mean_outside_windows": 266.3591,
+     "peak_date": "2008-12-17",
+     "first_above_own_expanding_p90": "2007-07-25"
+    },
+    "residual_p90": {
+     "mean_in_window": 0.4591,
+     "mean_outside_windows": 0.4602,
+     "peak_date": "2009-03-09",
+     "first_above_own_expanding_p90": "2007-08-23"
+    },
+    "residual_iqr": {
+     "mean_in_window": 0.4278,
+     "mean_outside_windows": 0.4215,
+     "peak_date": "2009-03-18",
+     "first_above_own_expanding_p90": "2007-11-09"
+    },
+    "residual_positive_share": {
+     "mean_in_window": 0.1269,
+     "mean_outside_windows": 0.1035,
+     "peak_date": "2009-04-20",
+     "first_above_own_expanding_p90": "2007-07-09"
+    },
+    "notch_gap_ge1_share": {
+     "mean_in_window": 0.3464,
+     "mean_outside_windows": 0.3617,
+     "peak_date": "2009-01-23",
+     "first_above_own_expanding_p90": "2007-09-25"
+    }
+   },
+   "2011 credit stress": {
+    "hy_spread": {
+     "mean_in_window": 574.2242,
+     "mean_outside_windows": 452.862,
+     "peak_date": "2011-10-05",
+     "first_above_own_expanding_p90": null
+    },
+    "hy_ig_gap": {
+     "mean_in_window": 387.8007,
+     "mean_outside_windows": 289.4382,
+     "peak_date": "2011-10-05",
+     "first_above_own_expanding_p90": null
+    },
+    "residual_p90": {
+     "mean_in_window": 0.4539,
+     "mean_outside_windows": 0.4603,
+     "peak_date": "2011-12-27",
+     "first_above_own_expanding_p90": "2011-11-28"
+    },
+    "residual_iqr": {
+     "mean_in_window": 0.4067,
+     "mean_outside_windows": 0.4234,
+     "peak_date": "2011-12-27",
+     "first_above_own_expanding_p90": "2011-11-28"
+    },
+    "residual_positive_share": {
+     "mean_in_window": 0.1016,
+     "mean_outside_windows": 0.108,
+     "peak_date": "2011-12-29",
+     "first_above_own_expanding_p90": null
+    },
+    "notch_gap_ge1_share": {
+     "mean_in_window": 0.3433,
+     "mean_outside_windows": 0.3597,
+     "peak_date": "2011-11-07",
+     "first_above_own_expanding_p90": null
+    }
+   },
+   "2012-13 HY residual elevation": {
+    "hy_spread": {
+     "mean_in_window": 445.8218,
+     "mean_outside_windows": 460.0804,
+     "peak_date": "2012-07-24",
+     "first_above_own_expanding_p90": null
+    },
+    "hy_ig_gap": {
+     "mean_in_window": 292.7136,
+     "mean_outside_windows": 293.945,
+     "peak_date": "2012-07-24",
+     "first_above_own_expanding_p90": "2012-07-24"
+    },
+    "residual_p90": {
+     "mean_in_window": 0.5031,
+     "mean_outside_windows": 0.4535,
+     "peak_date": "2012-02-27",
+     "first_above_own_expanding_p90": "2012-01-03"
+    },
+    "residual_iqr": {
+     "mean_in_window": 0.471,
+     "mean_outside_windows": 0.4154,
+     "peak_date": "2012-10-31",
+     "first_above_own_expanding_p90": "2012-01-03"
+    },
+    "residual_positive_share": {
+     "mean_in_window": 0.1165,
+     "mean_outside_windows": 0.1063,
+     "peak_date": "2012-10-19",
+     "first_above_own_expanding_p90": "2012-03-06"
+    },
+    "notch_gap_ge1_share": {
+     "mean_in_window": 0.3696,
+     "mean_outside_windows": 0.3574,
+     "peak_date": "2013-01-15",
+     "first_above_own_expanding_p90": "2012-02-10"
+    }
+   },
+   "2015-16 energy/credit": {
+    "hy_spread": {
+     "mean_in_window": 439.9727,
+     "mean_outside_windows": 459.6711,
+     "peak_date": "2016-02-10",
+     "first_above_own_expanding_p90": null
+    },
+    "hy_ig_gap": {
+     "mean_in_window": 290.5728,
+     "mean_outside_windows": 294.0393,
+     "peak_date": "2016-02-10",
+     "first_above_own_expanding_p90": "2016-02-10"
+    },
+    "residual_p90": {
+     "mean_in_window": 0.5239,
+     "mean_outside_windows": 0.4549,
+     "peak_date": "2016-02-18",
+     "first_above_own_expanding_p90": "2015-11-27"
+    },
+    "residual_iqr": {
+     "mean_in_window": 0.4327,
+     "mean_outside_windows": 0.4218,
+     "peak_date": "2016-02-23",
+     "first_above_own_expanding_p90": "2015-12-11"
+    },
+    "residual_positive_share": {
+     "mean_in_window": 0.1177,
+     "mean_outside_windows": 0.1069,
+     "peak_date": "2016-01-29",
+     "first_above_own_expanding_p90": "2015-12-21"
+    },
+    "notch_gap_ge1_share": {
+     "mean_in_window": 0.3345,
+     "mean_outside_windows": 0.3609,
+     "peak_date": "2016-03-18",
+     "first_above_own_expanding_p90": null
+    }
+   }
+  }
+ },
+ "production_spec": "M1",
+ "production_features": [
+  "residual_p90",
+  "residual_iqr",
+  "residual_positive_share"
+ ],
+ "descriptive_only": [
+  "residual_p95",
+  "mean_positive_residual",
+  "residual_mad",
+  "residual_std",
+  "notch_gap_*",
+  "tail_share_*",
+  "tail_sector_hhi"
+ ],
+ "sector_diagnostic": {
+  "sector_source": "comp.co_hgic historical GICS, two-digit gsector in force on each issuer-day (macro.data.sector.gics_sector_asof)",
+  "use": "interpretation only; the production residual is NOT sector-adjusted",
+  "concentration_rule": "largest classified sector's top-decile share >= 2.0x its share of all issuer-days in the period",
+  "periods": {
+   "2007-09 financial crisis": {
+    "top_decile_share": {
+     "40": 0.476,
+     "25": 0.264,
+     "20": 0.095,
+     "15": 0.054,
+     "unclassified": 0.03,
+     "45": 0.028
+    },
+    "all_issuer_share": {
+     "25": 0.174,
+     "40": 0.159,
+     "20": 0.124,
+     "10": 0.115,
+     "30": 0.091,
+     "15": 0.08
+    },
+    "largest_tail_sector": "40",
+    "largest_tail_share_over_base": 2.99,
+    "classification": "sector-concentrated",
+    "m1_vs_same_day_sector_p90": {
+     "M1_classified": 0.4567,
+     "M2_same_day_sector": 0.361
+    },
+    "sector_40_tail_share": 0.476,
+    "sector_40_base_share": 0.159,
+    "sector_40_mean_residual": 0.3459
+   },
+   "2011 credit stress": {
+    "top_decile_share": {
+     "40": 0.545,
+     "25": 0.092,
+     "20": 0.08,
+     "55": 0.052,
+     "50": 0.05,
+     "unclassified": 0.045
+    },
+    "all_issuer_share": {
+     "40": 0.176,
+     "25": 0.162,
+     "20": 0.133,
+     "10": 0.131,
+     "35": 0.082,
+     "15": 0.081
+    },
+    "largest_tail_sector": "40",
+    "largest_tail_share_over_base": 3.09,
+    "classification": "sector-concentrated",
+    "m1_vs_same_day_sector_p90": {
+     "M1_classified": 0.4465,
+     "M2_same_day_sector": 0.3843
+    },
+    "sector_40_tail_share": 0.545,
+    "sector_40_base_share": 0.176,
+    "sector_40_mean_residual": 0.3264
+   },
+   "2012-13 HY residual elevation": {
+    "top_decile_share": {
+     "40": 0.394,
+     "25": 0.112,
+     "10": 0.105,
+     "20": 0.095,
+     "15": 0.063,
+     "55": 0.059
+    },
+    "all_issuer_share": {
+     "40": 0.172,
+     "25": 0.165,
+     "10": 0.145,
+     "20": 0.126,
+     "15": 0.089,
+     "35": 0.08
+    },
+    "largest_tail_sector": "40",
+    "largest_tail_share_over_base": 2.29,
+    "classification": "sector-concentrated",
+    "m1_vs_same_day_sector_p90": {
+     "M1_classified": 0.5017,
+     "M2_same_day_sector": 0.4663
+    }
+   },
+   "2015-16 energy/credit": {
+    "top_decile_share": {
+     "10": 0.554,
+     "15": 0.15,
+     "40": 0.094,
+     "20": 0.065,
+     "25": 0.053,
+     "unclassified": 0.019
+    },
+    "all_issuer_share": {
+     "40": 0.187,
+     "10": 0.151,
+     "25": 0.149,
+     "20": 0.133,
+     "15": 0.088,
+     "45": 0.077
+    },
+    "largest_tail_sector": "10",
+    "largest_tail_share_over_base": 3.67,
+    "classification": "sector-concentrated",
+    "m1_vs_same_day_sector_p90": {
+     "M1_classified": 0.5201,
+     "M2_same_day_sector": 0.4037
+    },
+    "sector_10_tail_share": 0.554,
+    "sector_10_base_share": 0.151,
+    "sector_10_mean_residual": 0.4382
+   },
+   "calm reference 2013-07..2014-06": {
+    "top_decile_share": {
+     "40": 0.239,
+     "10": 0.192,
+     "15": 0.11,
+     "25": 0.107,
+     "20": 0.082,
+     "45": 0.056
+    },
+    "all_issuer_share": {
+     "40": 0.177,
+     "10": 0.157,
+     "25": 0.154,
+     "20": 0.123,
+     "15": 0.091,
+     "35": 0.073
+    },
+    "largest_tail_sector": "40",
+    "largest_tail_share_over_base": 1.35,
+    "classification": "broad",
+    "m1_vs_same_day_sector_p90": {
+     "M1_classified": 0.4422,
+     "M2_same_day_sector": 0.4404
+    }
+   }
+  }
+ },
+ "no_lookahead_real_data_cutoffs": [
+  "2006-06-30",
+  "2008-09-15",
+  "2008-12-31",
+  "2011-08-08",
+  "2014-01-02",
+  "2016-02-11",
+  "2017-05-31"
+ ],
+ "coverage_linked_vs_unlinked": [
+  {
+   "month": "2007-06",
+   "linked": false,
+   "bond_days": 33617,
+   "trace_grade_H_share": 0.32864324597673794,
+   "trace_grade_missing_share": 0.017610137727935272,
+   "median_spread_bp": 117.90225872689942,
+   "median_spread_grade_H": 275.51478439425057,
+   "median_spread_grade_I": 92.2950718685832
+  },
+  {
+   "month": "2007-06",
+   "linked": true,
+   "bond_days": 36776,
+   "trace_grade_H_share": 0.2426038720904938,
+   "trace_grade_missing_share": 0.02822492930171851,
+   "median_spread_bp": 104.64683436002736,
+   "median_spread_grade_H": 238.35263973305953,
+   "median_spread_grade_I": 87.42569016655253
+  },
+  {
+   "month": "2010-01",
+   "linked": false,
+   "bond_days": 37444,
+   "trace_grade_H_share": 0.2654096784531567,
+   "trace_grade_missing_share": 0.01930883452622583,
+   "median_spread_bp": 200.82249942391056,
+   "median_spread_grade_H": 639.753625359343,
+   "median_spread_grade_I": 168.837451540041
+  },
+  {
+   "month": "2010-01",
+   "linked": true,
+   "bond_days": 45800,
+   "trace_grade_H_share": 0.21633187772925763,
+   "trace_grade_missing_share": 0.011026200873362445,
+   "median_spread_bp": 177.11632289527722,
+   "median_spread_grade_H": 490.3747433607118,
+   "median_spread_grade_I": 148.61302320328545
+  },
+  {
+   "month": "2016-06",
+   "linked": false,
+   "bond_days": 37046,
+   "trace_grade_H_share": 0.16071910597635372,
+   "trace_grade_missing_share": 0.19651244398855477,
+   "median_spread_bp": 170.14370266940455,
+   "median_spread_grade_H": 490.52735554414784,
+   "median_spread_grade_I": 156.88334640657084
+  },
+  {
+   "month": "2016-06",
+   "linked": true,
+   "bond_days": 74510,
+   "trace_grade_H_share": 0.2129512817071534,
+   "trace_grade_missing_share": 0.2067373506911824,
+   "median_spread_bp": 159.05938903718913,
+   "median_spread_grade_H": 425.1871164271048,
+   "median_spread_grade_I": 134.34921998631074
+  }
+ ]
+}

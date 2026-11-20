@@ -1,0 +1,14 @@
+# #24 residual extension: does M1 residual stress add to RV + VIX + HYCredit?
+# Same QLIKE / Clark-West protocol and threshold as #24, judged against the reference
+# (research/hy_credit.md: "same QLIKE / Clark-West protocol; no threshold changes").
+signal: hy_credit_residual
+signals:
+  - {module: macro.features.hy_credit, class: HYCredit}
+  - {module: macro.features.hy_residual, class: HYResidualStress}
+references: [hy_credit]
+horizons: [5, 21, 63]
+threshold:
+  horizon: 21
+  qlike_reduction: 0.05
+  clark_west_p: 0.10
+  against: references
