@@ -99,10 +99,18 @@ def test_holdout_run_reads_through_the_signal_and_scores_only_2018_on(sources, m
     assert not (sources / "results/scorecard.csv").exists()
 
 
-def test_holdout_run_without_signal_data_fails_before_writing(sources):
-    with pytest.raises(ValueError, match="no decision date"):
-        run_signal.run(CONFIG, holdout_end=pd.Timestamp("2019-06-28"), root=sources)
-    assert not list((sources / "results").rglob("*.csv"))
+def test_a_horizon_without_forecasts_fails_before_any_output(sources, monkeypatch):
+    # Signal data from 2019-04-01: h = 5 has April and May 2019 forecasts, h = 63 none.
+    days = pd.bdate_range("2019-04-01", "2019-06-28")
+    sig = pd.Series(np.random.default_rng(2).normal(size=len(days)), days)
+    fetch = series.FETCHERS["fake"]
+    monkeypatch.setitem(
+        series.FETCHERS, "fake", lambda i, s, e: pd.concat([fetch(i, s, e), sig.loc[s:e]])
+    )
+    config = CONFIG | {"horizons": [5, 63]}
+    with pytest.raises(ValueError, match="h = 63: no decision date"):
+        run_signal.run(config, holdout_end=pd.Timestamp("2019-06-28"), root=sources)
+    assert not (sources / "results").exists()
 
 
 def test_threshold_horizon_must_be_scored(sources):

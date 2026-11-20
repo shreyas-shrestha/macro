@@ -68,7 +68,8 @@ def run(config: dict, holdout_end: pd.Timestamp | None = None, root: Path = ROOT
     # Both models train and forecast on the same rows: those where the signal exists.
     base_features = model_features[["log_rv", "log_vix"]].where(model_features.notna().all(axis=1))
 
-    rows, curves = [], {}
+    # Fit every horizon before writing anything, so a failure leaves no partial output.
+    fitted = {}
     for h in horizons:
         grid = forecast_grid(returns, h, start, end)
         target = realized_variance(returns, h).loc[grid]
@@ -84,6 +85,10 @@ def run(config: dict, holdout_end: pd.Timestamp | None = None, root: Path = ROOT
         )
         if out.empty:
             raise ValueError(f"{name}, h = {h}: no decision date has forecasts from both models")
+        fitted[h] = out, baseline, model
+
+    rows, curves = [], {}
+    for h, (out, baseline, model) in fitted.items():
         path = root / "results" / "forecasts" / f"{name}_h{h}{tag}.csv"
         path.parent.mkdir(parents=True, exist_ok=True)
         out.rename_axis("decision_date").to_csv(path, float_format="%.8g")
