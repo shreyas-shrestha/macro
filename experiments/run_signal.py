@@ -141,10 +141,10 @@ def run(config: dict, holdout_end: pd.Timestamp | None = None, root: Path = ROOT
             label: walk_forward(model_features[cols].where(rows_used), returns, grid, h)
             for label, cols in reference_columns.items()
         }
-        out = target.rename("target").to_frame().join(model.add_prefix("model_"))
+        out = target.rename("target").to_frame()
         for label, forecast in compared.items():
             out = out.join(forecast.add_prefix(f"{label}_"))
-        out = out.dropna()
+        out = out.join(model.add_prefix("model_")).dropna()
         if out.empty:
             raise ValueError(f"{name}, h = {h}: no decision date has forecasts from every model")
         fitted[h] = out, model, compared
