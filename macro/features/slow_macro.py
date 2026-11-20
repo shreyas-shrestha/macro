@@ -6,8 +6,8 @@ including which values are first releases: data/README.md.
 
     claims_yoy        log(4-week average of ICNSA / the same average 52 weeks earlier)
     claims_vs_low     log(4-week average / its minimum over the prior 52 weeks)
-    anfci_level       ANFCI first release
-    anfci_change_13w  that value minus the first release 13 releases earlier
+    anfci_level       ANFCI first release (or revised value, see FinancialConditions)
+    anfci_change_13w  that value minus the value 13 releases earlier
 
 The year-ago week is matched by date (364 days back), not by position. ANFCI first
 releases are indexed by publication date, so its change counts releases; ANFCI has no
@@ -58,10 +58,20 @@ class Claims(Signal):
 
 
 class FinancialConditions(Signal):
+    """ANFCI features from first releases, or with ``revised=True`` from the revised
+    history (exploratory: not point in time, see data/README.md)."""
+
     name = "financial_conditions"
     source = "ALFRED (ANFCI)"
     start_date = pd.Timestamp("2011-06-03")
     release_lag = 1
 
+    def __init__(self, revised: bool = False):
+        self.series = "ANFCI_REVISED" if revised else "ANFCI"
+        if revised:
+            self.source = "FRED (ANFCI, revised history)"
+            self.start_date = pd.Timestamp("1990-01-02")
+
     def build(self, end_date: pd.Timestamp) -> pd.DataFrame:
-        return weekly_on_sessions("ANFCI", conditions_features, end_date).loc[self.start_date :]
+        frame = weekly_on_sessions(self.series, conditions_features, end_date)
+        return frame.loc[self.start_date :]

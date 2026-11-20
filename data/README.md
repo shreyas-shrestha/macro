@@ -38,6 +38,7 @@ NYSE sessions.
 | CPFF | FRED | `CPFF` | 1997-01-02 | 1 | 3 | No | 3-month commercial paper minus fed funds; 16 missing sessions in Nov 2008–Jan 2009, one gap of 9 |
 | NFCI | ALFRED | `NFCI` | 1990-01-02 | 1 | 10 | Yes | Weekly; first ALFRED vintage 2011-06-02 |
 | ANFCI | ALFRED | `ANFCI` | 1990-01-02 | 1 | 10 | Yes | NFCI adjusted for economic conditions; first ALFRED vintage 2011-06-02 |
+| ANFCI_REVISED | FRED | `ANFCI` | 1990-01-02 | 1 | 10 | Yes | Revised history, **not point in time**; exploratory runs only, see below |
 | ICSA | ALFRED | `ICSA` | 1990-01-02 | 1 | 10 | Yes | Weekly initial claims; first ALFRED vintage 2009-06-04 |
 | ICNSA | FRED, ALFRED | `ICNSA` | 1988-01-02 | 1 | 10 | Yes | Weekly initial claims, not seasonally adjusted; first releases from 2009-05-30; stamped by release day, see below |
 | EMBIG | BCRP | `PD04707XD` | 1998-01-02 | 2 | 3 | Not checked | Global; BCRP has nothing after 2017-01-09, so #17 uses the regional series |
@@ -87,6 +88,14 @@ series' first vintage. So `alfred.fetch` starts with the second vintage (the dat
 table), nothing is usable before it, and none of the three covers 2008. A feature with a
 52-week window starts a year after that date. One ANFCI week, ending 2012-10-26,
 was released late, together with the next week on 2012-11-07.
+
+**Revised ANFCI (ANFCI_REVISED).** For #14's exploratory run on 2000–2017 only: ANFCI
+has no first releases before 2011, so this reads the whole history from the vintage
+published on 2017-12-31. Every value includes revisions made after its release, so
+results from it are labelled "revised history, not real time" and cannot carry a label.
+Each week ending Friday *f* is stamped *f* + 6 (the Thursday release of holiday weeks;
+normal weeks come out on Wednesday) with *L* = 1. That timing is the 2011–2017 schedule
+applied to earlier years, when the index was not yet published.
 
 **Weekly claims (ICNSA).** The Department of Labor releases initial claims for the week
 ending Saturday *s* at 08:30 ET on Thursday *s* + 5, or on Wednesday when that Thursday

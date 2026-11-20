@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from macro.data import alfred, cache, claims, series
+from macro.data import alfred, cache, claims, revised, series
 from macro.features.slow_macro import (
     Claims,
     FinancialConditions,
@@ -143,3 +143,61 @@ def test_financial_conditions_use_first_releases_in_publication_order():
     assert out.loc["2012-11-07", "anfci_level"] == pytest.approx((later - 2) / 100)
     assert out.loc["2012-11-08", "anfci_level"] == pytest.approx(later / 100)
     assert out.loc["2012-11-08", "anfci_change_13w"] == pytest.approx(0.13)
+
+
+# The revised vintage: every Friday since 1990, one value per week encoding its date.
+VINTAGE_FRIDAYS = pd.date_range("1990-01-05", "2017-12-29", freq="W-FRI")
+VINTAGE = pd.Series(np.arange(len(VINTAGE_FRIDAYS)) / 1000, index=VINTAGE_FRIDAYS)
+
+
+@pytest.fixture
+def revised_vintage(monkeypatch):
+    requests = []
+
+    class FakeFred:
+        def __init__(self, api_key):
+            pass
+
+        def get_series(self, series_id, observation_start, observation_end, **kwargs):
+            requests.append(kwargs)
+            return VINTAGE.loc[observation_start:observation_end]
+
+    monkeypatch.setattr(revised, "Fred", FakeFred)
+    return requests
+
+
+def test_revised_weeks_are_stamped_the_thursday_after_the_week(revised_vintage):
+    out = revised.fetch("ANFCI", pd.Timestamp("1990-01-02"), pd.Timestamp("2017-12-31"))
+    assert revised_vintage == [{"realtime_start": "2017-12-31", "realtime_end": "2017-12-31"}]
+    assert out.index[0] == pd.Timestamp("1990-01-11")
+    assert (out.index.day_of_week == 3).all()
+    # The week ending 2017-12-29 is stamped 2018-01-04 and dropped.
+    assert out.index[-1] == pd.Timestamp("2017-12-28")
+
+
+def test_revised_refuses_weeks_not_ending_friday(monkeypatch):
+    class FakeFred:
+        def __init__(self, api_key):
+            pass
+
+        def get_series(self, *args, **kwargs):
+            return pd.Series([1.0], index=pd.to_datetime(["2017-12-28"]))
+
+    monkeypatch.setattr(revised, "Fred", FakeFred)
+    with pytest.raises(ValueError, match="Friday"):
+        revised.fetch("ANFCI", pd.Timestamp("2017-01-02"), pd.Timestamp("2017-12-31"))
+
+
+def test_revised_financial_conditions_start_in_1990_and_lag_the_release(revised_vintage):
+    out = FinancialConditions(revised=True).run("2017-12-31")
+    assert out.index[0] == pd.Timestamp("1990-01-02")
+    # The week ending Friday 2008-09-12 is stamped Thursday 09-18 and first used Friday 09-19.
+    week = VINTAGE_FRIDAYS.get_loc(pd.Timestamp("2008-09-12"))
+    assert out.loc["2008-09-18", "anfci_level"] == pytest.approx((week - 1) / 1000)
+    assert out.loc["2008-09-19", "anfci_level"] == pytest.approx(week / 1000)
+    assert out.loc["2008-09-19", "anfci_change_13w"] == pytest.approx(0.013)
+
+
+def test_revised_financial_conditions_no_lookahead(revised_vintage):
+    cutoffs = ["1995-06-30", "2008-09-18", "2008-09-19", "2015-03-31"]
+    assert_no_lookahead(FinancialConditions(revised=True), cutoffs=cutoffs)

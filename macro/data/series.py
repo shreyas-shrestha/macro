@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 from macro.config import DEV_END
-from macro.data import alfred, bcrp, claims, fred, yahoo
+from macro.data import alfred, bcrp, claims, fred, revised, yahoo
 from macro.data.cache import cached
 from macro.data.calendar import INDEX_NAME, nyse_sessions
 from macro.data.pit import align
@@ -36,6 +36,7 @@ SERIES = {
     "CPFF": SeriesSpec("fred", "CPFF", pd.Timestamp("1997-01-02"), 1, 3),
     "NFCI": SeriesSpec("alfred", "NFCI", pd.Timestamp("1990-01-02"), 1, 10),
     "ANFCI": SeriesSpec("alfred", "ANFCI", pd.Timestamp("1990-01-02"), 1, 10),
+    "ANFCI_REVISED": SeriesSpec("revised", "ANFCI", pd.Timestamp("1990-01-02"), 1, 10),
     "ICSA": SeriesSpec("alfred", "ICSA", pd.Timestamp("1990-01-02"), 1, 10),
     "ICNSA": SeriesSpec("claims", "ICNSA", pd.Timestamp("1988-01-02"), 1, 10),
     "EMBIG": SeriesSpec("bcrp", "PD04707XD", pd.Timestamp("1998-01-02"), 2, 3),
@@ -58,6 +59,7 @@ FETCHERS = {
     "claims": claims.fetch,
     "alfred": alfred.fetch,
     "bcrp": bcrp.fetch,
+    "revised": revised.fetch,
 }
 
 _HOLDOUT_READS = ContextVar("holdout_reads", default=False)
