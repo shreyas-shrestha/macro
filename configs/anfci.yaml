@@ -1,0 +1,6 @@
+# Slow macro, financial conditions (#14). Exploratory: real-time ANFCI starts in 2011, so
+# forecasts start in 2014 and cannot carry the label.
+signal: anfci
+module: macro.features.slow_macro
+class: FinancialConditions
+horizons: [5, 21, 63, 126, 252]

@@ -1,5 +1,7 @@
 """Series registry and ``load``, the one way to read a series (see data/README.md)."""
 
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 
 import pandas as pd
@@ -58,13 +60,32 @@ FETCHERS = {
     "bcrp": bcrp.fetch,
 }
 
+_HOLDOUT_READS = ContextVar("holdout_reads", default=False)
+
+
+@contextmanager
+def holdout_reads():
+    """Let every ``load`` inside the block read the holdout, as if ``holdout=True``.
+
+    For the final run only (``run_signal.py --holdout``): signals call ``load`` inside
+    ``build`` and cannot be handed the flag themselves. Every read in the block is a
+    fresh download, including pre-2018 history, so it can differ from the cached files
+    the development runs used if a source revised its history.
+    """
+    token = _HOLDOUT_READS.set(True)
+    try:
+        yield
+    finally:
+        _HOLDOUT_READS.reset(token)
+
 
 def load(name: str, end_date=DEV_END, *, holdout: bool = False, refresh: bool = False) -> pd.Series:
     """Return ``name`` on NYSE sessions from its start through ``end_date``.
 
     Raises ``ValueError`` for an ``end_date`` after ``DEV_END`` unless ``holdout`` is
-    set. Holdout reads bypass the cache, so holdout data never lands on disk by accident.
-    Before ``spec.start`` the result is empty.
+    set or the call is inside ``holdout_reads()``. Holdout reads bypass the cache, so
+    holdout data never lands on disk by accident. Before ``spec.start`` the result is
+    empty.
     """
     values = raw(name, end_date, holdout=holdout, refresh=refresh)
     return on_sessions(name, values, end_date).rename(name)
@@ -77,6 +98,7 @@ def raw(name: str, end_date=DEV_END, *, holdout: bool = False, refresh: bool = F
     cache rules as ``load``.
     """
     spec = SERIES[name]
+    holdout = holdout or _HOLDOUT_READS.get()
     end_date = pd.Timestamp(end_date)
     if end_date > DEV_END and not holdout:
         raise ValueError(f"{name}: {end_date.date()} is in the holdout; pass holdout=True")
