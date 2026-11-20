@@ -103,7 +103,9 @@ def run(config: dict, holdout_end: pd.Timestamp | None = None, root: Path = ROOT
 
     table = update_scorecard(root / "results" / f"scorecard{tag}.csv", name, rows)
     fig = root / "results" / "figures" / f"{name}_cumulative_qlike{tag}.png"
-    if not plot_cumulative(fig, name, curves):
+    if plot_cumulative(fig, name, curves):
+        print(f"\nSaved {fig}")
+    else:
         print("\nSkipped figure (matplotlib not installed)")
     return table[table["signal"] == name]
 
