@@ -1,0 +1,7 @@
+# Slow macro follow-up 1 (#14), posted before running: ANFCI on its revised 2000–2017
+# history. Exploratory and not point in time; cannot change the label.
+signal: anfci_revised
+module: macro.features.slow_macro
+class: FinancialConditions
+kwargs: {revised: true}
+horizons: [5, 21, 63, 126, 252]

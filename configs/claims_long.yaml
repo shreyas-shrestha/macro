@@ -1,0 +1,15 @@
+# Slow macro follow-up 2 (#14), posted before running: claims against a model that
+# already has slow volatility (Engle, Ghysels & Sohn 2013). Pass at h = 126: QLIKE at
+# least 5% below baseline + long_rv, Clark–West p < 0.05, and still a gain with 2008
+# removed (checked in research/slow_macro.md). h = 252 reported too.
+signal: claims_long
+signals:
+  - {module: macro.features.long_rv, class: LongRV}
+  - {module: macro.features.slow_macro, class: Claims}
+references: [long_rv]
+horizons: [126, 252]
+threshold:
+  horizon: 126
+  qlike_reduction: 0.05
+  clark_west_p: 0.05
+  against: references

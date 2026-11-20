@@ -1,0 +1,8 @@
+# Slow macro, claims and ANFCI together (#14). Exploratory, as anfci.yaml; also scored
+# against baseline + claims, to show what ANFCI adds beyond claims.
+signal: claims_anfci
+signals:
+  - {module: macro.features.slow_macro, class: Claims}
+  - {module: macro.features.slow_macro, class: FinancialConditions, name: anfci}
+references: [claims]
+horizons: [5, 21, 63, 126, 252]

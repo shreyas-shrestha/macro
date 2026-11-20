@@ -1,0 +1,11 @@
+# Slow macro, claims block (#14). The pre-registered test (posted on #14 before any run):
+# h = 21, QLIKE at least 5% lower than the baseline and Clark–West p < 0.10. Secondary,
+# declared in advance: the same test at h = 63.
+signal: claims
+module: macro.features.slow_macro
+class: Claims
+horizons: [5, 21, 63, 126, 252]
+threshold:
+  horizon: 21
+  qlike_reduction: 0.05
+  clark_west_p: 0.10

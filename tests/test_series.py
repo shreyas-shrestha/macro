@@ -143,3 +143,10 @@ def test_holdout_reads_reset_after_an_exception(fake_source):
         raise RuntimeError
     with pytest.raises(ValueError, match="holdout"):
         series.load("FAKE", "2018-01-31")
+
+
+def test_holdout_reads_unlock_raw_too(fake_source):
+    with series.holdout_reads():
+        assert series.raw("FAKE", "2018-01-31").index[-1] == pd.Timestamp("2018-01-31")
+    with pytest.raises(ValueError, match="holdout"):
+        series.raw("FAKE", "2018-01-31")

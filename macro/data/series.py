@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 from macro.config import DEV_END
-from macro.data import alfred, bcrp, fred, yahoo
+from macro.data import alfred, bcrp, claims, fred, revised, yahoo
 from macro.data.cache import cached
 from macro.data.calendar import INDEX_NAME, nyse_sessions
 from macro.data.pit import align
@@ -35,7 +35,10 @@ SERIES = {
     "T10Y3M": SeriesSpec("fred", "T10Y3M", pd.Timestamp("1990-01-02"), 1, 3),
     "CPFF": SeriesSpec("fred", "CPFF", pd.Timestamp("1997-01-02"), 1, 3),
     "NFCI": SeriesSpec("alfred", "NFCI", pd.Timestamp("1990-01-02"), 1, 10),
+    "ANFCI": SeriesSpec("alfred", "ANFCI", pd.Timestamp("1990-01-02"), 1, 10),
+    "ANFCI_REVISED": SeriesSpec("revised", "ANFCI", pd.Timestamp("1990-01-02"), 1, 10),
     "ICSA": SeriesSpec("alfred", "ICSA", pd.Timestamp("1990-01-02"), 1, 10),
+    "ICNSA": SeriesSpec("claims", "ICNSA", pd.Timestamp("1988-01-02"), 1, 10),
     "EMBIG": SeriesSpec("bcrp", "PD04707XD", pd.Timestamp("1998-01-02"), 2, 3),
     "EMBIG_LATAM": SeriesSpec("bcrp", "PD04708XD", pd.Timestamp("1998-01-02"), 2, 3),
     "EMBIG_PERU": SeriesSpec("bcrp", "PD04709XD", pd.Timestamp("1998-01-02"), 2, 3),
@@ -50,7 +53,14 @@ SERIES = {
 # A fetcher takes (source_id, start, end) and returns floats indexed by stamp date:
 # tz-naive midnight dates within [start, end], NaN for missing, rows sharing a stamp in
 # observation order.
-FETCHERS = {"yahoo": yahoo.fetch, "fred": fred.fetch, "alfred": alfred.fetch, "bcrp": bcrp.fetch}
+FETCHERS = {
+    "yahoo": yahoo.fetch,
+    "fred": fred.fetch,
+    "claims": claims.fetch,
+    "alfred": alfred.fetch,
+    "bcrp": bcrp.fetch,
+    "revised": revised.fetch,
+}
 
 _HOLDOUT_READS = ContextVar("holdout_reads", default=False)
 
@@ -79,28 +89,47 @@ def load(name: str, end_date=DEV_END, *, holdout: bool = False, refresh: bool = 
     holdout data never lands on disk by accident. Before ``spec.start`` the result is
     empty.
     """
+    values = raw(name, end_date, holdout=holdout, refresh=refresh)
+    return on_sessions(name, values, end_date).rename(name)
+
+
+def raw(name: str, end_date=DEV_END, *, holdout: bool = False, refresh: bool = False) -> pd.Series:
+    """``name``'s values by stamp date through ``end_date``, before alignment.
+
+    For computing on a series' native frequency before ``on_sessions``. Same holdout and
+    cache rules as ``load``.
+    """
     spec = SERIES[name]
     holdout = holdout or _HOLDOUT_READS.get()
     end_date = pd.Timestamp(end_date)
     if end_date > DEV_END and not holdout:
         raise ValueError(f"{name}: {end_date.date()} is in the holdout; pass holdout=True")
     if end_date < spec.start:
-        index = pd.DatetimeIndex([], dtype="datetime64[ns]", name=INDEX_NAME)
-        return pd.Series(dtype=float, index=index, name=name)
+        return pd.Series(dtype=float, index=pd.DatetimeIndex([], dtype="datetime64[ns]"))
 
     def fetch(end):
-        raw = FETCHERS[spec.source](spec.source_id, spec.start, end)
-        _check_raw(name, raw, spec.start, end)
-        return raw
+        values = FETCHERS[spec.source](spec.source_id, spec.start, end)
+        _check_raw(name, values, spec.start, end)
+        return values
 
     if holdout:
-        raw = fetch(end_date)
+        values = fetch(end_date)
     else:
-        raw = cached(f"{spec.source}/{spec.source_id}", lambda: fetch(DEV_END), refresh)
+        values = cached(f"{spec.source}/{spec.source_id}", lambda: fetch(DEV_END), refresh)
         # Also check what was read: the file may predate these checks or be edited.
-        _check_raw(name, raw, spec.start, DEV_END)
+        _check_raw(name, values, spec.start, DEV_END)
+    return values.loc[:end_date]
+
+
+def on_sessions(name: str, values: pd.Series, end_date) -> pd.Series:
+    """Put ``values``, stamped like ``name``'s raw data, on NYSE sessions with its lag and carry."""
+    spec = SERIES[name]
+    end_date = pd.Timestamp(end_date)
+    if end_date < spec.start:
+        index = pd.DatetimeIndex([], dtype="datetime64[ns]", name=INDEX_NAME)
+        return pd.Series(dtype=float, index=index)
     sessions = nyse_sessions(spec.start, end_date).rename(INDEX_NAME)
-    return align(raw.loc[:end_date], sessions, spec.lag, spec.max_carry).rename(name)
+    return align(values.loc[:end_date], sessions, spec.lag, spec.max_carry)
 
 
 def _check_raw(name: str, raw: pd.Series, start: pd.Timestamp, end: pd.Timestamp) -> None:
