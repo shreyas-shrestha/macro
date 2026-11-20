@@ -34,6 +34,22 @@ class Fake(Signal):
         return values.to_frame("sig").rename_axis(INDEX_NAME)
 
 
+class Other(Signal):
+    """A second signal on ``SIG``, starting in 2003, scaled by a constructor argument."""
+
+    name = "other"
+    source = "test"
+    start_date = pd.Timestamp("2003-01-02")
+    release_lag = 0
+
+    def __init__(self, scale: float = 1.0):
+        self.scale = scale
+
+    def build(self, end_date):
+        values = series.load("SIG", end_date).loc[self.start_date :]
+        return (self.scale * values.abs()).to_frame("other").rename_axis(INDEX_NAME)
+
+
 @pytest.fixture
 def sources(tmp_path, monkeypatch):
     """SPX, VIX and SIG from seeded random data; SIG has a gap in 2005 and ends in 2017."""
@@ -58,6 +74,7 @@ def sources(tmp_path, monkeypatch):
     )
     module = types.ModuleType("fake_signal")
     module.Fake = Fake
+    module.Other = Other
     monkeypatch.setitem(sys.modules, "fake_signal", module)
     return tmp_path
 
@@ -117,3 +134,93 @@ def test_threshold_horizon_must_be_scored(sources):
     config = CONFIG | {"threshold": {"horizon": 63, "qlike_reduction": 0.05, "clark_west_p": 0.1}}
     with pytest.raises(ValueError, match="threshold horizon 63"):
         run_signal.run(config, root=sources)
+
+
+TWO = {
+    "signal": "both",
+    "signals": [
+        {"module": "fake_signal", "class": "Fake"},
+        {"module": "fake_signal", "class": "Other", "kwargs": {"scale": 2.0}},
+    ],
+    "references": ["fake"],
+    "horizons": [21],
+    "threshold": {"horizon": 21, "qlike_reduction": 0.05, "clark_west_p": 0.1},
+}
+
+
+def test_several_signals_share_rows_and_score_against_each_reference(sources, monkeypatch):
+    fits = []
+    fit_ridge = walkforward.fit_ridge
+
+    def spy(x, y, alpha):
+        fits.append((x.shape[1], len(y), round(float(y.sum()), 6)))
+        return fit_ridge(x, y, alpha)
+
+    monkeypatch.setattr(walkforward, "fit_ridge", spy)
+    rows = run_signal.run(TWO, root=sources)
+    assert list(rows["reference"]) == ["baseline", "baseline+fake"]
+    assert rows["meets_threshold"].notna().tolist() == [True, False]
+    # Full model, baseline and baseline + fake: 4, 2 and 3 columns, the same rows each refit.
+    by_width = {}
+    for width, n, total in fits:
+        by_width.setdefault(width, []).append((n, total))
+    assert sorted(by_width) == [2, 3, 4]
+    assert by_width[2] == by_width[3] == by_width[4]
+    out = pd.read_csv(sources / "results/forecasts/both_h21.csv", index_col=0, parse_dates=True)
+    # Other starts in 2003 and SIG skips 2005-03 to 08: 2006 is the first refit with 504 rows.
+    assert out.index[0] == pd.Timestamp("2006-01-31")
+    assert {"model_log", "baseline_log", "baseline+fake_log"} <= set(out.columns)
+
+
+def test_kwargs_reach_the_signal(sources):
+    entry = {"module": "fake_signal", "class": "Other"}
+    scaled = run_signal.build_features([entry | {"kwargs": {"scale": 3.0}}], DEV_END)
+    unscaled = run_signal.build_features([entry], DEV_END)
+    pd.testing.assert_frame_equal(scaled["other"], 3.0 * unscaled["other"])
+
+
+@pytest.mark.parametrize(
+    "change, message",
+    [
+        ({"module": "fake_signal"}, "either signals or"),
+        (
+            {"signals": [{"module": "fake_signal", "class": "Fake", "kwarg": {}}]},
+            "unknown signal keys",
+        ),
+        ({"signals": [{"module": "fake_signal", "class": "Fake"}] * 2}, "named 'fake'"),
+        (
+            {
+                "signals": [
+                    {"module": "fake_signal", "class": "Fake"},
+                    {"module": "fake_signal", "class": "Fake", "name": "again"},
+                ]
+            },
+            r"feature names clash .*: \['sig'\]",
+        ),
+        ({"feature": ["sig"]}, r"unknown config keys \['feature'\]"),
+        ({"treshold": {}}, r"unknown config keys \['treshold'\]"),
+        ({"reference": ["fake"]}, r"unknown config keys \['reference'\]"),
+        ({"threshold": {"horizon": 21}}, "threshold needs exactly"),
+        ({"threshold": 21}, "threshold must be a mapping"),
+        ({"signal": None}, "must name the run"),
+        ({"threshold": TWO["threshold"] | {"against": "fake"}}, "threshold against"),
+        ({"references": [], "threshold": TWO["threshold"] | {"against": "references"}}, "against"),
+        ({"references": ["fake", "fake"]}, "distinct signal names"),
+        ({"signals": []}, "non-empty list"),
+        ({"signals": {"module": "fake_signal", "class": "Fake"}}, "non-empty list"),
+        ({"signals": [{"class": "Fake"}]}, "needs module and class"),
+        ({"references": ["missing"]}, "not signals of this run"),
+        ({"references": ["fake", "other"]}, "leave out at least one"),
+    ],
+)
+def test_bad_signal_configs_raise(sources, change, message):
+    with pytest.raises(ValueError, match=message):
+        run_signal.run(TWO | change, root=sources)
+    assert not (sources / "results").exists()
+
+
+def test_threshold_against_references_judges_the_reference_row(sources):
+    config = TWO | {"threshold": TWO["threshold"] | {"against": "references"}}
+    rows = run_signal.run(config, root=sources)
+    judged = rows.set_index("reference")["meets_threshold"]
+    assert judged.isna().tolist() == [True, False]  # baseline row unjudged, reference judged

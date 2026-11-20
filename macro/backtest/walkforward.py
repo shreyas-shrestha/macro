@@ -18,19 +18,14 @@ from macro.models.target import realized_variance
 MIN_TRAIN_ROWS = 504
 # Not tuned. Shrinks standardized slopes by roughly ALPHA / n.
 ALPHA = 1.0
+BASELINE_COLUMNS = ["log_rv", "log_vix"]
 
 
 def baseline_features(returns: pd.Series, vix_close: pd.Series) -> pd.DataFrame:
     """Log trailing 21-session realized variance and log VIX squared, on every session."""
     sessions = returns.index
-    return np.log(
-        pd.DataFrame(
-            {
-                "log_rv": baselines.trailing_rv(returns, sessions),
-                "log_vix": baselines.vix(vix_close, sessions),
-            }
-        )
-    )
+    rv, vix = baselines.trailing_rv(returns, sessions), baselines.vix(vix_close, sessions)
+    return np.log(pd.DataFrame(dict(zip(BASELINE_COLUMNS, (rv, vix), strict=True))))
 
 
 def fit_ridge(x: np.ndarray, y: np.ndarray, alpha: float):
