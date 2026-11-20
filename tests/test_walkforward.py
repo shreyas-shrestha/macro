@@ -102,9 +102,9 @@ def test_compare_reports_improvement_for_a_better_model():
     assert row["cw_p"] < 0.10
 
 
-def test_clark_west_ignores_the_bias_correction():
+def test_log_scale_scores_ignore_the_bias_correction():
     # Different residual variances shift each model's variance by a different constant.
-    # Clark–West must see only the log forecasts.
+    # Clark–West and MSE on log volatility must see only the log forecasts.
     dates = pd.date_range("2000-01-31", periods=120, freq="ME")
     rng = np.random.default_rng(3)
     log_target = rng.normal(-3, 0.5, size=120)
@@ -114,6 +114,9 @@ def test_clark_west_ignores_the_bias_correction():
     row = compare(target, frames(base_log, 0.13, dates), frames(model_log, 0.05, dates), h=21)
     expected = clark_west(log_target, base_log, model_log, nw_lag(21))
     assert (row["cw_t"], row["cw_p"]) == pytest.approx(expected)
+    base_mse = np.mean((base_log - log_target) ** 2)
+    model_mse = np.mean((model_log - log_target) ** 2)
+    assert row["r2_oos_mse_log_vol"] == pytest.approx(1 - model_mse / base_mse)
 
 
 def test_breakdown_counts_forecasts_per_year_and_episode():
