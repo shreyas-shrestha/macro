@@ -1,5 +1,3 @@
-import socket
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -37,10 +35,7 @@ ANFCI = pd.Series(np.arange(len(FRIDAYS)) / 100, index=RELEASED)
 
 
 @pytest.fixture(autouse=True)
-def synthetic_sources(tmp_path, monkeypatch):
-    def no_network(*args):
-        raise AssertionError("tests must not hit the network")
-
+def synthetic_sources(tmp_path, monkeypatch, no_network):
     class FakeFred:
         def __init__(self, api_key):
             pass
@@ -48,7 +43,6 @@ def synthetic_sources(tmp_path, monkeypatch):
         def get_series(self, series_id, observation_start, observation_end, **kwargs):
             return ICNSA.loc[observation_start:observation_end]
 
-    monkeypatch.setattr(socket.socket, "connect", no_network)
     monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
     monkeypatch.setenv("FRED_API_KEY", "test")
     monkeypatch.setattr(claims, "Fred", FakeFred)
@@ -150,19 +144,25 @@ VINTAGE_FRIDAYS = pd.date_range("1990-01-05", "2017-12-29", freq="W-FRI")
 VINTAGE = pd.Series(np.arange(len(VINTAGE_FRIDAYS)) / 1000, index=VINTAGE_FRIDAYS)
 
 
-@pytest.fixture
-def revised_vintage(monkeypatch):
-    requests = []
+def fake_fred(series, requests=None):
+    """A ``Fred`` stand-in serving ``series``, recording realtime arguments in ``requests``."""
 
     class FakeFred:
         def __init__(self, api_key):
             pass
 
         def get_series(self, series_id, observation_start, observation_end, **kwargs):
-            requests.append(kwargs)
-            return VINTAGE.loc[observation_start:observation_end]
+            if requests is not None:
+                requests.append(kwargs)
+            return series.loc[observation_start:observation_end]
 
-    monkeypatch.setattr(revised, "Fred", FakeFred)
+    return FakeFred
+
+
+@pytest.fixture
+def revised_vintage(monkeypatch):
+    requests = []
+    monkeypatch.setattr(revised, "Fred", fake_fred(VINTAGE, requests))
     return requests
 
 
@@ -176,14 +176,8 @@ def test_revised_weeks_are_stamped_the_thursday_after_the_week(revised_vintage):
 
 
 def test_revised_refuses_weeks_not_ending_friday(monkeypatch):
-    class FakeFred:
-        def __init__(self, api_key):
-            pass
-
-        def get_series(self, *args, **kwargs):
-            return pd.Series([1.0], index=pd.to_datetime(["2017-12-28"]))
-
-    monkeypatch.setattr(revised, "Fred", FakeFred)
+    thursday = pd.Series([1.0], index=pd.to_datetime(["2017-12-28"]))
+    monkeypatch.setattr(revised, "Fred", fake_fred(thursday))
     with pytest.raises(ValueError, match="Friday"):
         revised.fetch("ANFCI", pd.Timestamp("2017-01-02"), pd.Timestamp("2017-12-31"))
 

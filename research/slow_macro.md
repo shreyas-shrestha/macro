@@ -135,7 +135,7 @@ with a gain of −0.1%, and the secondary reaches only +0.8% with *p* = 0.29.
   volatility regime before VIX does. The development period has one such episode, scored
   on revised claims, so it cannot be tested here.
 
-## Follow-up tests (posted on #14 before running)
+## Follow-up tests
 
 Two tests from the literature, posted after the main result and before either run; #14
 closes after them.
@@ -167,13 +167,12 @@ time, so it cannot carry a label).
 
 The long-horizon gains are 2008 alone, and every horizon loses without it. R²_OOS on
 log volatility is negative throughout, so even the QLIKE gains come from forecasting
-higher in a crisis rather than from tracking volatility better. The 2008 values are
-also the least trustworthy part of a revised index, which the Chicago Fed re-estimates
-with hindsight.
+higher in a crisis rather than from tracking volatility better. The 2008 values also
+come from a revised index, which the Chicago Fed re-estimates with hindsight.
 
 **Conclusion.** Neither test changes the label: #14 is `not-advancing` and closes.
 Weekly claims and financial conditions add nothing to VIX and realized volatility at
-1 to 12 months in 2000–2017; every apparent gain is the 2008 crisis.
+1 week to 12 months in 2000–2017; every apparent gain is the 2008 crisis.
 
 ## Not done yet
 

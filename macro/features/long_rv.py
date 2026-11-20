@@ -10,6 +10,7 @@ so claims are tested against a model that already contains it.
 import numpy as np
 import pandas as pd
 
+from macro.config import ESTIMATION_START
 from macro.data.series import load
 from macro.features.base import INDEX_NAME, Signal
 from macro.models.target import ANNUALIZE, log_returns
@@ -20,7 +21,7 @@ WINDOWS = (126, 252)
 class LongRV(Signal):
     name = "long_rv"
     source = "Yahoo (^GSPC)"
-    start_date = pd.Timestamp("1990-01-02")
+    start_date = ESTIMATION_START
     release_lag = 0
 
     def build(self, end_date: pd.Timestamp) -> pd.DataFrame:

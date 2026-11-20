@@ -1,5 +1,3 @@
-import socket
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -16,11 +14,7 @@ CLOSE = pd.Series(
 
 
 @pytest.fixture(autouse=True)
-def fake_spx(tmp_path, monkeypatch):
-    def no_network(*args):
-        raise AssertionError("tests must not hit the network")
-
-    monkeypatch.setattr(socket.socket, "connect", no_network)
+def fake_spx(tmp_path, monkeypatch, no_network):
     monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
     monkeypatch.setitem(series.FETCHERS, "yahoo", lambda sid, start, end: CLOSE.loc[start:end])
 
