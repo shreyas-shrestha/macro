@@ -1,0 +1,10 @@
+# Funding and liquidity, CPFF (#15); the test was posted on #15 before any run.
+# Concentration check: experiments/score_excluding.py, as in research/funding.md.
+signal: funding
+module: macro.features.funding
+class: Funding
+horizons: [5, 21, 63]
+threshold:
+  horizon: 21
+  qlike_reduction: 0.05
+  clark_west_p: 0.10
