@@ -60,7 +60,9 @@ def holdout_reads():
     """Let every ``load`` inside the block read the holdout, as if ``holdout=True``.
 
     For the final run only (``run_signal.py --holdout``): signals call ``load`` inside
-    ``build`` and cannot be handed the flag themselves.
+    ``build`` and cannot be handed the flag themselves. Every read in the block is a
+    fresh download, including pre-2018 history, so it can differ from the cached files
+    the development runs used if a source revised its history.
     """
     token = _HOLDOUT_READS.set(True)
     try:

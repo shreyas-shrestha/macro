@@ -67,7 +67,8 @@ def test_short_training_years_are_skipped_with_a_warning():
 
 
 def test_holdout_grid_starts_in_2018_and_ends_with_the_targets():
-    returns = synthetic_returns("2015-01-02", "2019-06-28")
+    # Returns run past ``end``; the grid must still stop with targets ending by it.
+    returns = synthetic_returns("2015-01-02", "2019-12-31")
     grid = forecast_grid(returns, 21, HOLDOUT_START, "2019-06-28")
     assert grid[0] == pd.Timestamp("2018-01-31")
     # June 2019 has 20 sessions, so a 21-session target from 2019-05-31 ends in July.

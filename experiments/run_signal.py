@@ -44,28 +44,18 @@ from macro.models.target import HORIZONS, forecast_grid, log_returns, realized_v
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--config", required=True, help="path to configs/<signal>.yaml")
-    parser.add_argument(
-        "--holdout",
-        metavar="END",
-        type=pd.Timestamp,
-        help="final run (#20): score 2018-01-01 onward with targets ending by END",
-    )
-    args = parser.parse_args()
-    if args.holdout is not None and args.holdout <= HOLDOUT_START:
-        parser.error(f"--holdout END must be after {HOLDOUT_START.date()}")
-
-    config = yaml.safe_load(Path(args.config).read_text())
+def run(config: dict, holdout_end: pd.Timestamp | None = None, root: Path = ROOT) -> pd.DataFrame:
+    """Score the signal in ``config``; return its scorecard rows. See the module docstring."""
     name = config["signal"]
     horizons = config.get("horizons", list(HORIZONS))
     threshold = config.get("threshold", {})
+    if threshold and threshold["horizon"] not in horizons:
+        raise ValueError(f"threshold horizon {threshold['horizon']} is not in horizons {horizons}")
 
-    if args.holdout is None:
+    if holdout_end is None:
         start, end, tag, reads = DEV_START, DEV_END, "", contextlib.nullcontext()
     else:
-        start, end, tag, reads = HOLDOUT_START, args.holdout, "_holdout", holdout_reads()
+        start, end, tag, reads = HOLDOUT_START, holdout_end, "_holdout", holdout_reads()
 
     signal = getattr(importlib.import_module(config["module"]), config["class"])()
     with reads:
@@ -92,7 +82,9 @@ def main() -> None:
             .join(model.add_prefix("model_"))
             .dropna()
         )
-        path = ROOT / "results" / "forecasts" / f"{name}_h{h}{tag}.csv"
+        if out.empty:
+            raise ValueError(f"{name}, h = {h}: no decision date has forecasts from both models")
+        path = root / "results" / "forecasts" / f"{name}_h{h}{tag}.csv"
         path.parent.mkdir(parents=True, exist_ok=True)
         out.rename_axis("decision_date").to_csv(path, float_format="%.8g")
 
@@ -109,15 +101,29 @@ def main() -> None:
         print(f"\n=== {name}, h = {h}: QLIKE by year and stress episode ===")
         print(breakdown(target, baseline, model).round(4).to_string())
 
-    table = update_scorecard(ROOT / "results" / f"scorecard{tag}.csv", name, rows)
-    print("\n=== scorecard ===")
-    print(table[table["signal"] == name].round(4).to_string(index=False))
-
-    fig = ROOT / "results" / "figures" / f"{name}_cumulative_qlike{tag}.png"
-    if plot_cumulative(fig, name, curves):
-        print(f"\nSaved {fig.relative_to(ROOT)}")
-    else:
+    table = update_scorecard(root / "results" / f"scorecard{tag}.csv", name, rows)
+    fig = root / "results" / "figures" / f"{name}_cumulative_qlike{tag}.png"
+    if not plot_cumulative(fig, name, curves):
         print("\nSkipped figure (matplotlib not installed)")
+    return table[table["signal"] == name]
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--config", required=True, help="path to configs/<signal>.yaml")
+    parser.add_argument(
+        "--holdout",
+        metavar="END",
+        type=pd.Timestamp,
+        help="final run (#20): score 2018-01-01 onward with targets ending by END",
+    )
+    args = parser.parse_args()
+    if args.holdout is not None and args.holdout <= HOLDOUT_START:
+        parser.error(f"--holdout END must be after {HOLDOUT_START.date()}")
+
+    rows = run(yaml.safe_load(Path(args.config).read_text()), args.holdout)
+    print("\n=== scorecard ===")
+    print(rows.round(4).to_string(index=False))
 
 
 if __name__ == "__main__":

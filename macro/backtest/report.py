@@ -36,10 +36,9 @@ def _common(target: pd.Series, baseline: pd.DataFrame, model: pd.DataFrame):
 def compare(target: pd.Series, baseline: pd.DataFrame, model: pd.DataFrame, h: int) -> dict:
     """Scores on the rows where both models have a forecast.
 
-    QLIKE and MSE on log volatility use the bias-corrected ``variance``. Clark–West
-    compares squared errors of ``log`` against log realized variance: ``log`` is what the
-    ridge estimates, and the bias correction would add a different constant to each
-    model's errors.
+    QLIKE uses the bias-corrected ``variance``. MSE on log volatility and Clark–West use
+    ``log``: it is what the ridge estimates, and the bias correction would add a
+    different constant to each model's log errors.
     """
     y, b, m = _common(target, baseline, model)
     base_qlike = qlike_losses(b["variance"], y)
@@ -54,8 +53,9 @@ def compare(target: pd.Series, baseline: pd.DataFrame, model: pd.DataFrame, h: i
         "qlike_model": model_qlike.mean(),
         # Share of the baseline's QLIKE removed: 0.05 is 5% lower.
         "qlike_reduction": r2_oos(model_qlike, base_qlike),
+        # Symmetric on the log scale, so scored like Clark–West on the uncorrected forecast.
         "r2_oos_mse_log_vol": r2_oos(
-            mse_log_vol_losses(m["variance"], y), mse_log_vol_losses(b["variance"], y)
+            mse_log_vol_losses(np.exp(m["log"]), y), mse_log_vol_losses(np.exp(b["log"]), y)
         ),
         "cw_t": t_stat,
         "cw_p": p_value,
