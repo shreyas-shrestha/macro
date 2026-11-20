@@ -49,13 +49,12 @@ import pandas as pd
 import yaml
 
 from macro.backtest.report import breakdown, compare, plot_cumulative, qlike_gain, update_scorecard
-from macro.backtest.walkforward import baseline_features, walk_forward
+from macro.backtest.walkforward import BASELINE_COLUMNS, baseline_features, walk_forward
 from macro.config import DEV_END, DEV_START, ESTIMATION_START, HOLDOUT_START
 from macro.data.series import holdout_reads, load
 from macro.models.target import HORIZONS, forecast_grid, log_returns, realized_variance
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE_COLUMNS = ["log_rv", "log_vix"]
 SIGNAL_KEYS = {"module", "class", "kwargs", "features", "name"}
 
 
@@ -91,7 +90,7 @@ def build_features(entries: list[dict], end: pd.Timestamp) -> dict[str, pd.DataF
         {c for c in columns if columns.count(c) > 1} | (set(columns) & set(BASELINE_COLUMNS))
     )
     if clashes:
-        raise ValueError(f"feature names used twice: {clashes}")
+        raise ValueError(f"feature names clash with each other or the baseline: {clashes}")
     return out
 
 
@@ -124,7 +123,7 @@ def run(config: dict, holdout_end: pd.Timestamp | None = None, root: Path = ROOT
 
     model_features = baseline_features(returns, vix_close).join(list(signals.values()), how="left")
     # Every model trains and forecasts on the same rows: those where every feature exists.
-    rows_used = model_features.notna().all(axis=1)
+    shared_rows = model_features.notna().all(axis=1)
     reference_columns = {"baseline": BASELINE_COLUMNS}
     if references:
         reference_columns["baseline+" + "+".join(references)] = BASELINE_COLUMNS + [
@@ -138,7 +137,7 @@ def run(config: dict, holdout_end: pd.Timestamp | None = None, root: Path = ROOT
         target = realized_variance(returns, h).loc[grid]
         model = walk_forward(model_features, returns, grid, h)
         compared = {
-            label: walk_forward(model_features[cols].where(rows_used), returns, grid, h)
+            label: walk_forward(model_features[cols].where(shared_rows), returns, grid, h)
             for label, cols in reference_columns.items()
         }
         out = target.rename("target").to_frame()

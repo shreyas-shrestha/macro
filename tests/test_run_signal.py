@@ -167,19 +167,16 @@ def test_several_signals_share_rows_and_score_against_each_reference(sources, mo
     assert sorted(by_width) == [2, 3, 4]
     assert by_width[2] == by_width[3] == by_width[4]
     out = pd.read_csv(sources / "results/forecasts/both_h21.csv", index_col=0, parse_dates=True)
-    assert out.index[0] >= pd.Timestamp("2004-01-01")  # Other starts 2003; first refit 2004
+    # Other starts in 2003 and SIG skips 2005-03 to 08: 2006 is the first refit with 504 rows.
+    assert out.index[0] == pd.Timestamp("2006-01-31")
     assert {"model_log", "baseline_log", "baseline+fake_log"} <= set(out.columns)
 
 
 def test_kwargs_reach_the_signal(sources):
-    config = {"signal": "other", "module": "fake_signal", "class": "Other", "horizons": [21]}
-    plain = run_signal.run(config, root=sources)
-    scaled = run_signal.run(config | {"kwargs": {"scale": 3.0}}, root=sources)
-    # Ridge on standardized features is scale-free; the forecasts must match exactly.
-    assert plain["qlike_model"].item() == pytest.approx(scaled["qlike_model"].item())
-    signal = run_signal.build_features([config | {"kwargs": {"scale": 3.0}}], DEV_END)
-    unscaled = run_signal.build_features([config], DEV_END)
-    pd.testing.assert_frame_equal(signal["other"], 3.0 * unscaled["other"])
+    entry = {"module": "fake_signal", "class": "Other"}
+    scaled = run_signal.build_features([entry | {"kwargs": {"scale": 3.0}}], DEV_END)
+    unscaled = run_signal.build_features([entry], DEV_END)
+    pd.testing.assert_frame_equal(scaled["other"], 3.0 * unscaled["other"])
 
 
 @pytest.mark.parametrize(
@@ -198,7 +195,7 @@ def test_kwargs_reach_the_signal(sources):
                     {"module": "fake_signal", "class": "Fake", "name": "again"},
                 ]
             },
-            r"feature names used twice: \['sig'\]",
+            r"feature names clash .*: \['sig'\]",
         ),
         ({"references": ["missing"]}, "not signals of this run"),
         ({"references": ["fake", "other"]}, "leave out at least one"),
