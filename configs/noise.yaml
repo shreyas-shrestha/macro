@@ -1,4 +1,4 @@
-# harness sanity check (#10) - random features should NOT beat the baseline
+# Harness sanity check (#10): random features should not beat the baseline.
 signal: noise
 module: macro.features.noise
 class: Noise

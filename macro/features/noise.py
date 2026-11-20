@@ -1,7 +1,6 @@
-"""pure random noise - sanity check for the harness (#10)
+"""Random features with no information, a sanity check for the harness (#10).
 
-a fake signal w/ zero info. through the harness it should show NO real improvement.
-if it does, the harness is leaking future data or overfitting
+Scored like any signal, they should show no improvement over the baseline.
 """
 
 import numpy as np
@@ -23,7 +22,7 @@ class Noise(Signal):
 
     def build(self, end_date: pd.Timestamp) -> pd.DataFrame:
         sessions = nyse_sessions(self.start_date, end_date).rename(INDEX_NAME)
-        # same seed + same start -> earlier rows never change when end_date moves
+        # Same seed and start, so earlier rows do not change when end_date moves.
         values = np.random.default_rng(self.seed).normal(size=(len(sessions), self.columns))
         return pd.DataFrame(
             values, index=sessions, columns=[f"noise_{i}" for i in range(self.columns)]
