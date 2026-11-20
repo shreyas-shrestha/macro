@@ -10,7 +10,8 @@ from fredapi import Fred
 from macro.data.fred import api_key
 
 # The week ending Friday f is released Wednesday f + 5, or Thursday f + 6 in holiday
-# weeks; stamping every week f + 6 never comes before the release.
+# weeks, so every week is stamped f + 6. One week, ending 2012-10-26, was released late
+# (data/README.md); this exploratory series ignores it.
 RELEASE = pd.Timedelta(days=6)
 
 

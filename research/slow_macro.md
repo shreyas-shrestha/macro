@@ -149,7 +149,8 @@ at least 5% below the reference, Clark–West *p* < 0.05, and a gain with 2008 r
 | **126** | 210 | 0.3235 | 0.3182 | **+1.6%** | **−2.1%** | **0.66** |
 | 252 | 203 | 0.3413 | 0.3378 | +1.0% | −1.8% | 0.61 |
 
-It fails all three conditions. The gain is 2008 again (summed QLIKE gain 1.98 at
+"Without 2008" drops decision dates in 2008. Dropping every forecast whose target
+window touches 2008 instead gives −2.2% and −4.0%. It fails all three conditions. The gain is 2008 again (summed QLIKE gain 1.98 at
 *h* = 126), and 2009 gives most of it back (−1.05). Slow realized variance itself
 improves on the baseline by 4.8% at *h* = 126 and 5.1% at 252, a note for long-horizon
 baselines rather than for #14.
@@ -165,7 +166,8 @@ time, so it cannot carry a label).
 | 126 | 210 | 0.3391 | 0.2807 | +17.2% | −21.9% | −0.080 | 0.15 |
 | 252 | 203 | 0.3595 | 0.2735 | +23.9% | −2.7% | −0.010 | 0.09 |
 
-The long-horizon gains are 2008 alone, and every horizon loses without it. R²_OOS on
+The long-horizon gains are 2008 alone, and every horizon loses without it (−15.8% at
+*h* = 252 if forecasts whose target window touches 2008 are dropped too). R²_OOS on
 log volatility is negative throughout, so even the QLIKE gains come from forecasting
 higher in a crisis rather than from tracking volatility better. The 2008 values also
 come from a revised index, which the Chicago Fed re-estimates with hindsight.
