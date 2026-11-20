@@ -58,9 +58,8 @@ weekly, 2010-06-24 to 2017-12-28 (393 weeks):
 | `claims_vs_low` | 0.9997 | 0.0156 | 0.0018 | 0.156 |
 
 Raw values over 2010–2017: the vintage differs from the first release by a median 0.5%
-of the first release (90th percentile 1.4%, maximum 3.8%; 3.65% as a share of the
-vintage value). If pre-2009 revisions were similar, the deviation is small next to the
-features' variation.
+of the first release (90th percentile 1.4%, maximum 3.8%). If pre-2009 revisions were
+similar, the deviation is small next to the features' variation.
 
 ## Models
 
@@ -69,12 +68,9 @@ Scored with the shared harness (#10): `experiments/run_signal.py` with
 log realized variance; baseline log trailing RV and log VIX; yearly expanding refit,
 embargo *h*; month-end grid; every model on identical rows; refits with fewer than 504
 training rows are skipped. Horizons 5, 21, 63, 126, 252. Claims + ANFCI is also scored
-against baseline + claims, which shows what ANFCI adds beyond claims.
-
-An earlier stand-in runner gave identical claims results at every horizon. ANFCI
-results differ from it: the stand-in fit from the end of 2012 on as few as 82 rows,
-while the harness's 504-row minimum moves the first ANFCI forecast to 2014 (2015 at
-*h* = 126 and 252).
+against baseline + claims, which shows what ANFCI adds beyond claims. The 504-row
+minimum puts the first ANFCI forecast in January 2014 (January 2015 at *h* = 126 and
+252).
 
 ## Pre-registered threshold (posted on #14 before any run)
 
@@ -86,8 +82,8 @@ while the harness's 504-row minimum moves the first ANFCI forecast to 2014 (2015
 
 ## Scorecard
 
-Development period only. Gain is the QLIKE reduction against the baseline on the same
-rows (positive is better); *p* is one-sided Clark–West.
+Development period only. Gain is the QLIKE reduction against the model in the Against
+column, on the same rows (positive is better); *p* is one-sided Clark–West.
 
 | Block | Against | *h* | *n* | QLIKE ref | QLIKE signal | Gain | R²_OOS | CW *p* |
 |---|---|---|---|---|---|---|---|---|
@@ -124,23 +120,23 @@ with a gain of −0.1%, and the secondary reaches only +0.8% with *p* = 0.29.
   improvement in 2008 is 0.52, 2.24, 3.74 and 2.99 at *h* = 21, 63, 126 and 252; over
   every other year it is −0.56, −1.77, −0.81 and −0.59. Within 2008 the gain comes from
   forecasts made in April to August, before Lehman: rising claims raised the forecast
-  while VIX was still moderate. Over the crisis itself (September 2008 to March 2009) the
-  block gains nothing at *h* = 63 and loses at 126 and 252, then keeps losing into mid
-  2009, when claims were still high and volatility was falling. The +3–4% at 126 and 252
-  days is one early warning, not a horizon effect.
+  while VIX was still moderate. Over the crisis itself (September 2008 to March 2009)
+  the block gains nothing at *h* = 63 and loses at 126 and 252, then keeps losing into
+  mid-2009, when claims were still high and volatility was falling. The +3–4% at 126 and
+  252 days is one early warning, not a horizon effect.
 - **The 2008 claims values are not point in time.** Weeks before mid-2009 use the
   2017-12-31 vintage (see `data/README.md`), so the one episode that carries the long
   horizons is also the one scored on revised data.
 - **The ANFCI results should not be believed in either direction.** At *h* = 252 there
   are 23 month-ends from 2015 to 2016, about two non-overlapping years, and Newey–West
   with 12 lags on 23 points is unreliable; at every shorter horizon the same features
-  lose 6–64%. Against baseline + claims, ANFCI adds nothing up to *h* = 126.
+  lose 6–64%. Added to claims, ANFCI raises QLIKE by 15–51% up to *h* = 126.
 - What remains for the claims block is a weak hint that a rise in claims can warn of a
   volatility regime before VIX does. The development period has one such episode, scored
   on revised claims, so it cannot be tested here.
 
 ## Not done yet
 
-- The indicative 2000–2017 ANFCI run on revised history ("revised history, not real
-  time").
+- The indicative 2000–2017 ANFCI run on revised history, labelled "revised history, not
+  real time" wherever it is reported.
 - The R²_OOS-versus-horizon chart.
