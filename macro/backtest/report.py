@@ -1,4 +1,8 @@
-"""report for #10 - compare baseline vs baseline + signal, then save the results"""
+"""Scores a signal model against the no-signal baseline and records the result (#10).
+
+``compare`` and ``breakdown`` take aligned frames from ``walk_forward`` with columns
+``log`` and ``variance``, plus the realized variance target.
+"""
 
 import math
 from pathlib import Path
@@ -8,7 +12,8 @@ import pandas as pd
 
 from macro.backtest.scoring import clark_west, mse_log_vol_losses, qlike_losses, r2_oos
 
-# crisis windows we check separately (from issue #10)
+# Stress episodes reported separately, as listed in #10. On the monthly grid the 2010,
+# 2011 and 2015 windows hold two or three forecasts each.
 EPISODES = {
     "2008 crisis": ("2008-09-01", "2009-03-31"),
     "2010 flash crash": ("2010-05-01", "2010-07-31"),
@@ -18,59 +23,80 @@ EPISODES = {
 
 
 def nw_lag(h: int) -> int:
-    """newey-west lag in rows - grid is monthly (~21 trading days apart), so an h-day
-    target overlaps about h / 21 of the next rows"""
+    """Newey–West lag in grid rows: later month-ends whose targets an h-session target
+    can overlap, at least 1."""
     return max(1, math.ceil(h / 21))
 
 
-def compare(target: pd.Series, baseline: pd.Series, model: pd.Series, h: int) -> dict:
-    """score baseline vs model, only on rows where BOTH have a forecast (fair fight)"""
+def _common(target: pd.Series, baseline: pd.DataFrame, model: pd.DataFrame):
     rows = target.index.intersection(baseline.dropna().index).intersection(model.dropna().index)
-    y, b, m = target.loc[rows], baseline.loc[rows], model.loc[rows]
+    return target.loc[rows], baseline.loc[rows], model.loc[rows]
 
-    base_qlike, model_qlike = qlike_losses(b, y), qlike_losses(m, y)
-    # luck check on log variance (the scale the ridge model predicts)
-    t_stat, p_value = clark_west(np.log(y), np.log(b), np.log(m), nw_lag(h))
+
+def compare(target: pd.Series, baseline: pd.DataFrame, model: pd.DataFrame, h: int) -> dict:
+    """Scores on the rows where both models have a forecast.
+
+    QLIKE and MSE on log volatility use the bias-corrected ``variance``. Clark–West
+    compares squared errors of ``log`` against log realized variance: ``log`` is what the
+    ridge estimates, and the bias correction would add a different constant to each
+    model's errors.
+    """
+    y, b, m = _common(target, baseline, model)
+    base_qlike = qlike_losses(b["variance"], y)
+    model_qlike = qlike_losses(m["variance"], y)
+    t_stat, p_value = clark_west(np.log(y), b["log"], m["log"], nw_lag(h))
     return {
         "horizon": h,
-        "n": len(rows),
-        "start": rows[0].date(),
-        "end": rows[-1].date(),
+        "n": len(y),
+        "start": y.index[0].date(),
+        "end": y.index[-1].date(),
         "qlike_baseline": base_qlike.mean(),
         "qlike_model": model_qlike.mean(),
-        # how much of the baseline's qlike the signal removes (0.05 = 5% lower)
+        # Share of the baseline's QLIKE removed: 0.05 is 5% lower.
         "qlike_reduction": r2_oos(model_qlike, base_qlike),
-        "r2_oos_mse_log_vol": r2_oos(mse_log_vol_losses(m, y), mse_log_vol_losses(b, y)),
+        "r2_oos_mse_log_vol": r2_oos(
+            mse_log_vol_losses(m["variance"], y), mse_log_vol_losses(b["variance"], y)
+        ),
         "cw_t": t_stat,
         "cw_p": p_value,
         "nw_lag": nw_lag(h),
     }
 
 
-def breakdown(target: pd.Series, baseline: pd.Series, model: pd.Series) -> pd.DataFrame:
-    """qlike of baseline + model by year and by crisis - did it only help in 2008?"""
-    rows = target.index.intersection(baseline.dropna().index).intersection(model.dropna().index)
+def qlike_gain(target: pd.Series, baseline: pd.DataFrame, model: pd.DataFrame) -> pd.Series:
+    """Per-row baseline QLIKE minus model QLIKE; positive where the signal helps."""
+    y, b, m = _common(target, baseline, model)
+    gain = qlike_losses(b["variance"], y) - qlike_losses(m["variance"], y)
+    return pd.Series(gain, index=y.index)
+
+
+def breakdown(target: pd.Series, baseline: pd.DataFrame, model: pd.DataFrame) -> pd.DataFrame:
+    """Mean QLIKE of both models and the count of forecasts, by year and stress episode."""
+    y, b, m = _common(target, baseline, model)
     losses = pd.DataFrame(
-        {
-            "baseline": qlike_losses(baseline.loc[rows], target.loc[rows]),
-            "model": qlike_losses(model.loc[rows], target.loc[rows]),
-        },
-        index=rows,
+        {"baseline": qlike_losses(b["variance"], y), "model": qlike_losses(m["variance"], y)},
+        index=y.index,
     )
-    by_year = losses.groupby(losses.index.year).mean()
-    by_year.index = by_year.index.astype(str)
+
+    def summarize(group: pd.DataFrame) -> pd.Series:
+        return pd.Series({"n": len(group), **group.mean()})
+
+    by_year = pd.DataFrame(
+        {str(year): summarize(g) for year, g in losses.groupby(losses.index.year)}
+    ).T
     episodes = {
-        name: losses.loc[start:end].mean()
+        name: summarize(losses.loc[start:end])
         for name, (start, end) in EPISODES.items()
         if not losses.loc[start:end].empty
     }
     out = pd.concat([by_year, pd.DataFrame(episodes).T])
+    out["n"] = out["n"].astype(int)
     out["reduction"] = 1 - out["model"] / out["baseline"]
     return out
 
 
 def update_scorecard(path: Path, signal: str, rows: list[dict]) -> pd.DataFrame:
-    """swap in this signal's rows in the shared scorecard csv (other signals stay)"""
+    """Replace ``signal``'s rows in the scorecard at ``path``, keeping other signals'."""
     new = pd.DataFrame(rows).assign(signal=signal)
     new = new[["signal"] + [c for c in new.columns if c != "signal"]]
     if path.exists():
@@ -82,9 +108,9 @@ def update_scorecard(path: Path, signal: str, rows: list[dict]) -> pd.DataFrame:
 
 
 def plot_cumulative(path: Path, signal: str, curves: dict[int, pd.Series]) -> bool:
-    """save the standard chart: running total of (baseline - model) qlike, 1 line per h
+    """Save the cumulative QLIKE gain over the baseline, one line per horizon.
 
-    line going UP = signal is helping. returns False if matplotlib isn't installed
+    A rising line means the signal is helping. Returns False if matplotlib is missing.
     """
     try:
         import matplotlib
@@ -95,8 +121,8 @@ def plot_cumulative(path: Path, signal: str, curves: dict[int, pd.Series]) -> bo
         return False
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    for h, diff in curves.items():
-        ax.plot(diff.index, diff.cumsum(), label=f"h = {h}")
+    for h, gain in curves.items():
+        ax.plot(gain.index, gain.cumsum(), label=f"h = {h}")
     ax.axhline(0, color="k", lw=0.8)
     ax.set_title(f"{signal}: cumulative QLIKE improvement over the no-signal model")
     ax.set_ylabel("cumulative (baseline - model) QLIKE")
