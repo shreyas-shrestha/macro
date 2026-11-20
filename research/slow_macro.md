@@ -135,8 +135,46 @@ with a gain of −0.1%, and the secondary reaches only +0.8% with *p* = 0.29.
   volatility regime before VIX does. The development period has one such episode, scored
   on revised claims, so it cannot be tested here.
 
+## Follow-up tests (posted on #14 before running)
+
+Two tests from the literature, posted after the main result and before either run; #14
+closes after them.
+
+**Claims against slow volatility** (`configs/claims_long.yaml`; Engle, Ghysels & Sohn
+2013). Reference: baseline + `log_rv_126` and `log_rv_252`. Pass at *h* = 126: QLIKE
+at least 5% below the reference, Clark–West *p* < 0.05, and a gain with 2008 removed.
+
+| *h* | *n* | QLIKE reference | QLIKE + claims | Gain | Gain without 2008 | CW *p* |
+|---|---|---|---|---|---|---|
+| **126** | 210 | 0.3235 | 0.3182 | **+1.6%** | **−2.1%** | **0.66** |
+| 252 | 203 | 0.3413 | 0.3378 | +1.0% | −1.8% | 0.61 |
+
+It fails all three conditions. The gain is 2008 again (summed QLIKE gain 1.98 at
+*h* = 126), and 2009 gives most of it back (−1.05). Slow realized variance itself
+improves on the baseline by 4.8% at *h* = 126 and 5.1% at 252, a note for long-horizon
+baselines rather than for #14.
+
+**ANFCI on revised history** (`configs/anfci_revised.yaml`; revised history, not real
+time, so it cannot carry a label).
+
+| *h* | *n* | QLIKE base | QLIKE signal | Gain | Gain without 2008 | R²_OOS | CW *p* |
+|---|---|---|---|---|---|---|---|
+| 5 | 215 | 0.2612 | 0.2813 | −7.7% | −9.7% | −0.065 | 0.91 |
+| 21 | 214 | 0.2456 | 0.2530 | −3.0% | −12.0% | −0.072 | 0.13 |
+| 63 | 213 | 0.2887 | 0.2752 | +4.7% | −22.2% | −0.153 | 0.16 |
+| 126 | 210 | 0.3391 | 0.2807 | +17.2% | −21.9% | −0.080 | 0.15 |
+| 252 | 203 | 0.3595 | 0.2735 | +23.9% | −2.7% | −0.010 | 0.09 |
+
+The long-horizon gains are 2008 alone, and every horizon loses without it. R²_OOS on
+log volatility is negative throughout, so even the QLIKE gains come from forecasting
+higher in a crisis rather than from tracking volatility better. The 2008 values are
+also the least trustworthy part of a revised index, which the Chicago Fed re-estimates
+with hindsight.
+
+**Conclusion.** Neither test changes the label: #14 is `not-advancing` and closes.
+Weekly claims and financial conditions add nothing to VIX and realized volatility at
+1 to 12 months in 2000–2017; every apparent gain is the 2008 crisis.
+
 ## Not done yet
 
-- The indicative 2000–2017 ANFCI run on revised history, labelled "revised history, not
-  real time" wherever it is reported.
 - The R²_OOS-versus-horizon chart.
