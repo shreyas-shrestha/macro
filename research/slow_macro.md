@@ -102,8 +102,8 @@ column, on the same rows (positive is better); *p* is one-sided Clark–West.
 | claims + anfci | baseline | 63 | 45 | 0.2301 | 0.2863 | −24.4% | −0.136 | 0.67 |
 | claims + anfci | baseline | 126 | 30 | 0.2811 | 0.3127 | −11.2% | −0.093 | 0.79 |
 | claims + anfci | baseline | 252 | 23 | 0.2146 | 0.1667 | +22.3% | 0.312 | 0.07 |
-| claims + anfci | + claims | 5 | 47 | 0.3823 | 0.4384 | −14.7% | −0.111 | 0.84 |
-| claims + anfci | + claims | 21 | 46 | 0.3536 | 0.5351 | −51.4% | −0.306 | 0.88 |
+| claims + anfci | + claims | 5 | 47 | 0.3823 | 0.4384 | −14.7% | −0.110 | 0.84 |
+| claims + anfci | + claims | 21 | 46 | 0.3536 | 0.5351 | −51.3% | −0.306 | 0.88 |
 | claims + anfci | + claims | 63 | 45 | 0.2311 | 0.2863 | −23.9% | −0.154 | 0.87 |
 | claims + anfci | + claims | 126 | 30 | 0.2672 | 0.3127 | −17.0% | −0.151 | 0.94 |
 | claims + anfci | + claims | 252 | 23 | 0.2120 | 0.1667 | +21.4% | 0.290 | 0.06 |
@@ -119,11 +119,11 @@ with a gain of −0.1%, and the secondary reaches only +0.8% with *p* = 0.29.
 - **The claims block's gains all come from one stretch of 2008.** Summed QLIKE
   improvement in 2008 is 0.52, 2.24, 3.74 and 2.99 at *h* = 21, 63, 126 and 252; over
   every other year it is −0.56, −1.77, −0.81 and −0.59. Within 2008 the gain comes from
-  forecasts made in April to August, before Lehman: rising claims raised the forecast
-  while VIX was still moderate. Over the crisis itself (September 2008 to March 2009)
-  the block gains nothing at *h* = 63 and loses at 126 and 252, then keeps losing into
-  mid-2009, when claims were still high and volatility was falling. The +3–4% at 126 and
-  252 days is one early warning, not a horizon effect.
+  forecasts made in April to August (mostly July and August at *h* = 63), before Lehman:
+  rising claims raised the forecast while VIX was still moderate. Over the crisis itself
+  (September 2008 to March 2009) the block gains nothing at *h* = 63 and loses at 126
+  and 252, then keeps losing into mid-2009, when claims were still high and volatility
+  was falling. The +3–4% at 126 and 252 days is one early warning, not a horizon effect.
 - **The 2008 claims values are not point in time.** Weeks before mid-2009 use the
   2017-12-31 vintage (see `data/README.md`), so the one episode that carries the long
   horizons is also the one scored on revised data.
