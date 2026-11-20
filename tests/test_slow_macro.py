@@ -36,16 +36,9 @@ ANFCI = pd.Series(np.arange(len(FRIDAYS)) / 100, index=RELEASED)
 
 @pytest.fixture(autouse=True)
 def synthetic_sources(tmp_path, monkeypatch, no_network):
-    class FakeFred:
-        def __init__(self, api_key):
-            pass
-
-        def get_series(self, series_id, observation_start, observation_end, **kwargs):
-            return ICNSA.loc[observation_start:observation_end]
-
     monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
     monkeypatch.setenv("FRED_API_KEY", "test")
-    monkeypatch.setattr(claims, "Fred", FakeFred)
+    monkeypatch.setattr(claims, "Fred", fake_fred(ICNSA))
     monkeypatch.setattr(alfred, "first_releases", lambda sid, end: alfred.table(FIRST_ROWS))
     monkeypatch.setitem(series.FETCHERS, "alfred", lambda sid, start, end: ANFCI.loc[start:end])
 
