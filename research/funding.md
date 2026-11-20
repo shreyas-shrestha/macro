@@ -80,21 +80,54 @@ concentration check rescores the *h* = 21 forecasts with
 
 ## Scorecard
 
-**To be filled after the run.** Development period only.
+Development period only. Gain is the QLIKE reduction against the baseline on the same
+rows (positive is better); *p* is one-sided Clark–West; R²_OOS is on squared errors of
+log volatility. The last two rows come from `experiments/score_excluding.py`.
 
 | Rows | *h* | *n* | QLIKE baseline | QLIKE signal | Gain | R²_OOS | CW *p* |
 |---|---|---|---|---|---|---|---|
-| all | 5 | | | | | | |
-| all | **21** | | | | | | |
-| all | 63 | | | | | | |
-| without 2007-08 to 2009-06 | **21** | | | | | | |
-| 2007-08 to 2009-06 only | 21 | | | | | | |
+| all | 5 | 179 | 0.2461 | 0.2462 | −0.04% | 0.002 | 0.09 |
+| all | **21** | 178 | 0.2581 | 0.2527 | **+2.1%** | −0.008 | **0.19** |
+| all | 63 | 177 | 0.3233 | 0.4234 | −31.0% | −0.226 | 0.97 |
+| without 2007-08 to 2009-06 | **21** | 155 | 0.2190 | 0.2252 | **−2.8%** | −0.032 | **0.77** |
+| 2007-08 to 2009-06 only | 21 | 23 | 0.5221 | 0.4386 | +16.0% | 0.097 | 0.05 |
 
-**Label:** to be filled after the run.
+Forecasts are in `results/forecasts/funding_h{5,21,63}.csv`.
+
+**Label: `not-advancing`.** The primary test fails, with a gain of +2.1% against the 5%
+bar and *p* = 0.19. Without the crisis window the gain is −2.8% (*p* = 0.77).
 
 ## Reading
 
-**To be filled after the run.**
+- **The *h* = 21 gain is three forecasts.** Summed over the 178 month-ends, the QLIKE
+  improvement is 0.96. The forecasts of 2008-08-29, 09-30 and 10-31 contribute 2.34;
+  every other month together loses 1.38, including −0.82 in 2009 and −0.45 in 2006.
+  Outside 2007–2009 the largest single gain is September 2005 (0.42).
+- **The gain is a large spread times a small coefficient.** Each horizon is a separate
+  fit. In the *h* = 21 refit used for 2008, the standardized ridge coefficients are +0.06
+  on `cpff_level` and −0.08 on `cpff_z_252`, next to +0.75 on log VIX. In September 2008
+  the level was 2.32, above anything in training (maximum 1.72, a one-day spike at the
+  2000 turn of year; 2007 peaked at 0.78) and 11 training s.d. above its mean, so its
+  small slope added about 0.6 in logs; the z-score (4.6, inside the range reached in
+  August 2007) took back half. Net, CPFF raised the forecast by a third: the level
+  extrapolated far beyond anything the 2007 episode reached, not a relationship the
+  sample can estimate.
+- **Then it overshoots.** The 2009 refit, now including 2008, raises the level coefficient
+  to +0.20. CPFF spiked again in January 2009 (1.95) while volatility was already well
+  below its October peak: the forecast was 2.3 times the baseline at *h* = 21 and 4.4
+  times at *h* = 63, and the losses run through 2009.
+- **At *h* = 63 the sign was wrong going into the crisis.** The refit used for 2008 has a
+  negative slope on the level (−0.07), so as CPFF rose from May to October 2008 the model
+  cut its forecast to 0.4–0.85 times the baseline just before the largest variance in the
+  sample. QLIKE punishes that heavily: −13.8 in 2008 alone. A plausible cause, not
+  tested here, is 2001–2002, when CPFF was negative because of expected rate cuts while
+  volatility was high; it is in every training window before 2008.
+- **The *h* = 5 *p* = 0.09 is not a gain.** Clark–West tests the log forecasts, while QLIKE
+  is flat (−0.04%); the large gains and losses in 2008 and 2009 cancel.
+- What remains is that CPFF was elevated in August 2008 (0.89, z-score 1.5) and spiked
+  after Lehman, while VIX had not yet caught up. The development period has one such
+  crisis (2007–2009), and the same features lose in its aftermath and in quiet years, so
+  that lead cannot be tested here.
 
 ## References
 
