@@ -47,6 +47,26 @@ The residual-stress extension (descriptive, development only) is described in it
 
 At h = 21, the TRACE high-yield signal must deliver at least 5% lower QLIKE than the VIX + RV no-signal model with Clark-West p < 0.10. The incremental result with #11's Baa-spread features included will also be reported to determine whether TRACE adds information beyond the simpler aggregate credit signal.
 
+## Development result (official, #10 harness)
+
+**#24 is not-advancing on the primary criterion.** At h = 21 `HYCredit` lowers QLIKE by 1.99% against the VIX + RV no-signal model. Clark-West p is 0.021, but the pre-registered bar is at least 5% lower QLIKE, so the threshold is not met.
+
+Run: `uv run python experiments/run_signal.py --config configs/hy_credit.yaml`. This uses the merged #10 harness: ridge on log variance, standardized on training rows only, yearly expanding refit with an h-session embargo, Clark-West with Newey-West lag in grid rows. All five `HYCredit` features, unchanged. Both models are fitted and scored on the same rows: 101 month-end decision dates, 2009-01-30 to 2017-05-31. Outputs: `results/forecasts/hy_credit_h{5,21,63}.csv` and the `hy_credit` rows of `results/scorecard.csv`.
+
+| h | QLIKE, VIX + RV | QLIKE, + HYCredit | QLIKE reduction | R²OOS, MSE log vol | Clark-West t | Clark-West p | Threshold |
+|---|---|---|---|---|---|---|---|
+| 5 | 0.2749 | 0.2617 | +4.82% | +3.3% | 2.12 | 0.017 | reported only |
+| **21** | **0.2776** | **0.2721** | **+1.99%** | **+2.5%** | **2.04** | **0.021** | **FAIL (needs ≥5%)** |
+| 63 | 0.2989 | 0.3266 | −9.26% | −39.0% | 0.07 | 0.470 | reported only |
+
+**Reading.** The HY spread carries statistically detectable short-horizon information: Clark-West is significant at h = 5 and h = 21. The economic improvement at the pre-registered horizon is too small to advance, and at h = 63 the signal hurts. The h = 21 gain is uneven across years: it comes mainly from 2009, 2010 and 2012, and the signal model is worse in 2011, 2013-2015 and early 2017 (`run_signal.py` prints the breakdown). The result stands as pre-registered; no feature, method or threshold was changed after seeing it.
+
+**Not yet official:**
+- *Residual stress (M1).* The nested comparison of VIX + RV + `HYCredit` + `HYResidualStress` against VIX + RV + `HYCredit` needs nested references in `run_signal.py` (#32, open). It is reported here once #32 merges.
+- *Baa (#11).* The incremental comparisons with #11's Baa features stay pending until #11 is merged and a `FRED_API_KEY` is available to load BAA10Y, DBAA and DAAA. They are secondary and cannot change the primary label.
+
+**Harness robustness question (not a reason to revisit this result).** The shared harness skips any refit year with fewer than 504 training rows (`MIN_TRAIN_ROWS`, about two years of sessions). Because #24's features start in 2006, the 2006-2008 refit years are skipped and scored forecasts begin in January 2009. The 2008 crisis is therefore almost absent: the "2008 crisis" episode row holds only January-March 2009. Every signal that starts around 2006 is affected the same way, so this is a harness-wide question for #10. It does not overturn the pre-registered result.
+
 ## TRACE record semantics (FINRA documentation)
 
 Sources: FINRA, "Historic TRACE Data: Enhanced Historic Time and Sales Trade Record File Layout". There are two versions: the pre-migration layout (FINRA `p120989`, November 2010) and the layout used after TRACE moved to a new platform on 2012-02-06 (FINRA `p353157`). Both describe the **Enhanced** historic file. Neither describes the standard disseminated BTDS file, whose `chng_cd`, `frmt_cd` and capped `ascii_rptd_vol_tx` therefore have no documented meaning here.
@@ -121,7 +141,7 @@ Outputs: `results/hy_credit/` (`dev_report.json`, `qa_report.json`, `attrition.c
 - **Daily issuer counts**: HY median 235 (min 11), IG median 364 (min 31). Six days have fewer than 50 HY issuers: Good Fridays and other partial sessions (2012-04-06, 2015-04-03, 2007-11-23, 2008-11-28) and two thin days (2011-09-01, 2012-07-23). No day falls below the 10-issuer minimum.
 - **Spreads** (bp; median, 5th-95th percentile, max): HY 410 (258-900, max 1,595 on 2008-12-16), IG 140 (91-382, max 594 on 2008-12-15), HY-IG 270 (162-510, max 1,009).
 - **QA** (`qa_report.json`): no failures. No chunk, reference table, rating or FRED value is dated 2018 or later; no duplicate days, bond-days or issuer-days; spreads within the screen; every decision date is after its observation date. `assert_no_lookahead` passes on the real series at seven cutoffs (2006-06-30 to 2017-05-31).
-- **Predictive test**: not run. The harness (#8, #9, #10) and #11's features are not in the repository, so no QLIKE or Clark-West result exists.
+- **Predictive test**: see Development result (official, #10 harness) above. Not-advancing at h = 21.
 
 ## Reproducing
 
@@ -245,13 +265,14 @@ Code: `macro/data/sector.py`, `past_sector_premium` / `add_sector_offset` / spec
 
 **Recommendation: B, retain no-sector M1 as the single preregistered residual add-on.** All three variants are point-in-time and cover the sample. The past-sector premium meets neither goal reliably: it fails to remove normal sector differences in 2013-15 (worse than no adjustment) and erases the 2011 financials stress. Its extra distinctness from HY stress comes with slow estimation drift that turns the GFC into a below-calm period, and its behaviour depends on a window choice that cannot be resolved without looking at outcomes. M1 has no estimated history, is transparent, and its residual stress is openly a mix of idiosyncratic and sector-concentrated repricing; the point-in-time GICS tail composition is reported alongside it for interpretation. **Adopted:** `CHOSEN_SPEC = "M1"`; `HYResidualStress` reads the M1 series; M2/M2P remain in the code for research only and their outputs (`results/hy_credit/residual_sector/`) are labelled as a research comparison.
 
-**To test once the harness exists** (h = 21, same QLIKE / Clark-West protocol; no threshold changes): RV + VIX; + `HYCredit`; + `HYCredit` + `HYResidualStress` (`residual_p90`, `residual_iqr`, `residual_positive_share`); and, once #11 exists, + Baa features. The question is whether residual stress improves forecasts after controlling for broad HY stress.
+**To test once the harness exists** (h = 21, same QLIKE / Clark-West protocol; no threshold changes): RV + VIX; + `HYCredit`; + `HYCredit` + `HYResidualStress` (`residual_p90`, `residual_iqr`, `residual_positive_share`); and, once #11 exists, + Baa features. The question is whether residual stress improves forecasts after controlling for broad HY stress. The `HYCredit` step is now run (see Development result). The residual and Baa steps are pending #32 and #11.
 
 ## Status
 
 - The real-sample validation passes all gates. The development pull (144 months, 2006-01 to 2017-12) and build are complete; QA reports no failures (see Development results).
-- Residual-stress extension: production spec M1 (decision B), sector used for interpretation only; development-only and descriptive. No predictive result yet.
-- The walk-forward harness (#8, #9, #10) and #11's Baa features are not in the repository on any branch yet. `HYCredit` implements the `Signal` interface and passes `assert_no_lookahead` on synthetic data. No QLIKE or Clark-West result exists, so advancing / not-advancing is undetermined.
+- **Primary criterion: not-advancing.** At h = 21, QLIKE is 1.99% lower than VIX + RV (Clark-West p = 0.021), short of the pre-registered 5%. See Development result.
+- Residual-stress extension: production spec M1 (decision B), sector used for interpretation only. Its nested predictive comparison waits for #32.
+- Baa incremental comparisons wait for #11 to merge and a `FRED_API_KEY`.
 
 ## Open questions
 
@@ -259,3 +280,4 @@ Code: `macro/data/sector.py`, `past_sector_premium` / `add_sector_offset` / spec
 - Rating coverage after February 2017 (the legacy ratings end). The panel stops at 2017-06-01 unless another point-in-time rating source is added. **The 2018+ holdout cannot be evaluated with this rating source**; a replacement must be chosen before the frozen run.
 - Whether TRACE `grade` (H/I) should extend coverage as a robustness classification.
 - Bond Returns licensing and construction (`t_spread` units, rating source) before it is used for anything beyond a monthly sanity comparison.
+- Whether the shared 504-row minimum training rule should be revisited for signals that begin after 2005, since it removes 2008 from their scored sample (raise on #10).

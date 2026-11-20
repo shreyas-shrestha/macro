@@ -1,0 +1,10 @@
+# High-yield credit spreads from TRACE (#24). Pre-registered on #24 before any run:
+# at h = 21, >= 5% lower QLIKE than the VIX + RV no-signal model with Clark-West p < 0.10.
+signal: hy_credit
+module: macro.features.hy_credit
+class: HYCredit
+horizons: [5, 21, 63]
+threshold:
+  horizon: 21
+  qlike_reduction: 0.05
+  clark_west_p: 0.10
