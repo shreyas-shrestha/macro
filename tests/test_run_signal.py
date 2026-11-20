@@ -197,6 +197,16 @@ def test_kwargs_reach_the_signal(sources):
             },
             r"feature names clash .*: \['sig'\]",
         ),
+        ({"feature": ["sig"]}, r"unknown config keys \['feature'\]"),
+        ({"treshold": {}}, r"unknown config keys \['treshold'\]"),
+        ({"reference": ["fake"]}, r"unknown config keys \['reference'\]"),
+        ({"threshold": {"horizon": 21}}, "threshold needs exactly"),
+        ({"threshold": TWO["threshold"] | {"against": "fake"}}, "threshold against"),
+        ({"references": [], "threshold": TWO["threshold"] | {"against": "references"}}, "against"),
+        ({"references": ["fake", "fake"]}, "distinct signal names"),
+        ({"signals": []}, "non-empty list"),
+        ({"signals": {"module": "fake_signal", "class": "Fake"}}, "non-empty list"),
+        ({"signals": [{"class": "Fake"}]}, "needs module and class"),
         ({"references": ["missing"]}, "not signals of this run"),
         ({"references": ["fake", "other"]}, "leave out at least one"),
     ],
@@ -205,3 +215,10 @@ def test_bad_signal_configs_raise(sources, change, message):
     with pytest.raises(ValueError, match=message):
         run_signal.run(TWO | change, root=sources)
     assert not (sources / "results").exists()
+
+
+def test_threshold_against_references_judges_the_reference_row(sources):
+    config = TWO | {"threshold": TWO["threshold"] | {"against": "references"}}
+    rows = run_signal.run(config, root=sources)
+    judged = rows.set_index("reference")["meets_threshold"]
+    assert judged.isna().tolist() == [True, False]  # baseline row unjudged, reference judged
