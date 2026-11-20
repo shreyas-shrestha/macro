@@ -65,7 +65,7 @@ def walk_forward(
     ``exp(log + resid_var / 2)``. Scores on the log scale (Clark–West) use ``log``.
     """
     target = np.log(realized_variance(returns, h)).rename("y")
-    data = pd.concat([features, target], axis=1)
+    data = pd.concat([features, target], axis=1, sort=True)
     cols = list(features.columns)
     forecasts = []
     for refit, year_dates in refit_schedule(returns.index, dates):

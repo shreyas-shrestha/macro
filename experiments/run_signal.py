@@ -37,13 +37,11 @@ import yaml
 
 from macro.backtest.report import breakdown, compare, plot_cumulative, qlike_gain, update_scorecard
 from macro.backtest.walkforward import baseline_features, walk_forward
-from macro.config import DEV_END, DEV_START, HOLDOUT_START
+from macro.config import DEV_END, DEV_START, ESTIMATION_START, HOLDOUT_START
 from macro.data.series import holdout_reads, load
 from macro.models.target import HORIZONS, forecast_grid, log_returns, realized_variance
 
 ROOT = Path(__file__).resolve().parents[1]
-# As in run_baselines.py: estimation starts with the VIX history.
-ESTIMATION_START = "1990-01-02"
 
 
 def main() -> None:
@@ -98,9 +96,9 @@ def main() -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         out.rename_axis("decision_date").to_csv(path, float_format="%.8g")
 
-        target, baseline, model = out["target"], baseline.loc[out.index], model.loc[out.index]
+        target = out["target"]
         row = compare(target, baseline, model, h)
-        if threshold and h == threshold.get("horizon"):
+        if threshold and h == threshold["horizon"]:
             row["meets_threshold"] = bool(
                 row["qlike_reduction"] >= threshold["qlike_reduction"]
                 and row["cw_p"] < threshold["clark_west_p"]

@@ -23,8 +23,8 @@ EPISODES = {
 
 
 def nw_lag(h: int) -> int:
-    """Newey–West lag in grid rows: later month-ends whose targets an h-session target
-    can overlap, at least 1."""
+    """Newey–West lag in monthly grid rows: how many later month-end targets an
+    h-session target overlaps, at least 1."""
     return max(1, math.ceil(h / 21))
 
 

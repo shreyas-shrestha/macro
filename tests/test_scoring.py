@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import pytest
 
 from macro.backtest.scoring import (
@@ -10,12 +9,6 @@ from macro.backtest.scoring import (
     qlike_losses,
     r2_oos,
 )
-
-
-def test_qlike_is_zero_for_a_perfect_forecast_and_penalizes_under_forecasts_more():
-    realized = pd.Series([0.04])
-    assert qlike(realized, realized) == 0
-    assert qlike(realized / 2, realized) > qlike(realized * 2, realized) > 0
 
 
 def test_nan_raises():
@@ -41,10 +34,9 @@ def test_too_low_worse_than_too_high():
     assert too_low > too_high
 
 
-def test_qlike_is_mean_of_losses():
-    forecast = [0.04, 0.03, 0.02]
-    realized = [0.04, 0.09, 0.01]
-    assert qlike(forecast, realized) == pytest.approx(qlike_losses(forecast, realized).mean())
+def test_qlike_by_hand():
+    # Ratios 2 and 1/2: (2 - ln 2 - 1) and (1/2 + ln 2 - 1) average to 1/4.
+    assert qlike([0.02, 0.08], [0.04, 0.04]) == pytest.approx(0.25)
 
 
 def test_shape_mismatch_raises():

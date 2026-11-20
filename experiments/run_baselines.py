@@ -11,12 +11,11 @@ from pathlib import Path
 import pandas as pd
 
 from macro.backtest.scoring import qlike
+from macro.config import ESTIMATION_START
 from macro.data.series import load
 from macro.models import baselines
 from macro.models.target import HORIZONS, forecast_grid, log_returns, realized_variance
 
-# Estimation starts with the VIX history; it keeps the 1987 crash out of every fit.
-ESTIMATION_START = "1990-01-02"
 OUT = Path(__file__).resolve().parents[1] / "results" / "baselines.csv"
 
 

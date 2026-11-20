@@ -60,7 +60,7 @@ def test_short_training_years_are_skipped_with_a_warning():
     returns = synthetic_returns()
     features = baselines.har_features(returns).loc["2001":]
     grid = forecast_grid(returns, 21)
-    # Fewer than 504 rows through the end of 2002: 2001 to 2003 are skipped.
+    # 2000 to 2003 are skipped; the 2003 refit has 479 rows through the end of 2002.
     with pytest.warns(UserWarning, match="skipping 2003, 479 training rows"):
         out = walk_forward(features, returns, grid, 21)
     assert out.index[0].year == 2004
